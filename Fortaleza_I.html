@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>La Fortaleza — En las entrañas de la Bestia</title>
+<style>
+:root{--bg:#08080f;--panel:#12121f;--panel-hi:#1a1a2e;--border:#2a2a3f;--border-hi:#3f3f5a;--text:#e0e0e8;--dim:#8888a0;--mute:#555570;--amber:#d4a24e;--amber-hi:#f0c46a;--green:#4ade80;--red:#f87171;--blue:#60a5fa;--purple:#c084fc;--font:"Iowan Old Style",Georgia,"Times New Roman",serif;--mono:Consolas,"Courier New",monospace;--ui:system-ui,-apple-system,sans-serif;--r:6px;--g:10px}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.5;overflow:hidden}
+.app{display:grid;grid-template-rows:48px 1fr 28px;height:100vh}
+.topbar{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;padding:0 16px;background:linear-gradient(180deg,#14141f,#0e0e18);border-bottom:1px solid var(--border);font-family:var(--ui)}
+.topbar__brand{display:flex;align-items:center;gap:8px;font-weight:600;letter-spacing:.4px;font-size:15px}
+.topbar__sigil{color:var(--amber);font-size:20px}
+.topbar__location{text-align:center;color:var(--dim);font-size:13px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.topbar__tools{display:flex;gap:4px}
+.btn-icon{background:transparent;border:1px solid transparent;color:var(--dim);padding:6px 10px;border-radius:4px;cursor:pointer;font-size:14px;transition:all .15s}
+.btn-icon:hover{border-color:var(--border-hi);color:var(--text)}
+.board{display:grid;grid-template-columns:minmax(360px,1fr) minmax(380px,1.15fr) 260px;gap:var(--g);padding:var(--g);overflow:hidden;min-height:0}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.panel__head{padding:8px 14px;border-bottom:1px solid var(--border)}
+.panel__title{margin:0;font-family:var(--ui);font-size:14px;font-weight:500;color:var(--amber);letter-spacing:.3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.room-viewport{flex:1;position:relative;min-height:0;display:flex;align-items:center;justify-content:center;padding:8px;background:radial-gradient(ellipse at center,#0d0d1a,#060610);cursor:default}
+.room-svg{width:100%;height:100%;display:block}
+.room-desc{padding:10px 14px;font-size:13px;color:var(--dim);border-top:1px solid var(--border);font-style:italic;max-height:80px;overflow-y:auto}
+.log{flex:1;padding:12px 16px;overflow-y:auto;font-size:14px;line-height:1.55;scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent}
+.log::-webkit-scrollbar{width:8px}.log::-webkit-scrollbar-track{background:transparent}.log::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:4px}
+.log__msg{margin:0 0 6px;white-space:pre-wrap}
+.log__msg--cmd{color:var(--amber);font-family:var(--mono);font-size:13px;margin-top:0}
+.log__msg--room{color:var(--text);font-weight:600;font-style:italic}
+.log__msg--desc{color:var(--dim)}
+.log__msg--success{color:var(--green)}
+.log__msg--error{color:var(--red)}
+.log__msg--hint{color:var(--blue);font-style:italic}
+.log__msg--dialog{color:var(--purple)}
+.log__msg--system{color:var(--mute);font-size:12px}
+.log__sep{border:none;border-top:1px solid var(--border);margin:10px 0 8px;opacity:.6;list-style:none}
+.cmdbar{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--border);background:var(--panel-hi)}
+.cmdbar__prompt{color:var(--amber);font-family:var(--mono);font-weight:700}
+.cmdbar__input{background:transparent;border:none;outline:none;color:var(--text);font-family:var(--mono);font-size:14px;padding:6px 0;caret-color:var(--amber);width:100%}
+.cmdbar__send{background:var(--panel);border:1px solid var(--border-hi);color:var(--dim);padding:4px 10px;border-radius:4px;cursor:pointer}
+.cmdbar__send:hover{color:var(--amber);border-color:var(--amber)}
+.quick{display:flex;gap:6px;padding:6px 12px 10px;border-top:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.quick::-webkit-scrollbar{display:none}
+.chip{background:var(--panel-hi);border:1px solid var(--border);color:var(--dim);padding:4px 10px;border-radius:20px;font-size:12px;cursor:pointer;white-space:nowrap;font-family:var(--ui);transition:all .15s;flex-shrink:0}
+.chip:hover{color:var(--amber);border-color:var(--amber)}
+.chip.is-armed{background:var(--amber);color:#1a1200;border-color:var(--amber);font-weight:600}
+.inventory{list-style:none;margin:0;padding:8px;overflow-y:auto;flex:1}
+.inv-item{display:grid;grid-template-columns:1fr auto;gap:6px;padding:6px 8px;border-radius:4px;cursor:pointer;align-items:center;font-size:13px}
+.inv-item:hover{background:var(--panel-hi)}
+.inv-item__weight{font-size:11px;color:var(--mute);font-family:var(--mono)}
+.inv-empty{color:var(--mute);font-style:italic;padding:16px;text-align:center;font-size:13px}
+.weightbar{padding:10px 12px 12px;border-top:1px solid var(--border)}
+.weightbar__track{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.weightbar__fill{height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--amber),var(--red));background-size:300px 100%;transition:width .3s ease}
+.weightbar__label{display:block;margin-top:4px;text-align:right;font-size:10px;font-family:var(--mono);color:var(--mute)}
+.weightbar__comment{margin-top:6px;font-size:11px;color:var(--dim);font-style:italic;line-height:1.4;min-height:1.4em}
+.statusbar{display:flex;align-items:center;gap:20px;padding:0 16px;background:var(--panel);border-top:1px solid var(--border);font-family:var(--ui);font-size:11px;color:var(--mute)}
+.statusbar__hint{margin-left:auto}
+.modal{position:fixed;inset:0;z-index:100;background:rgba(5,5,10,.9);display:grid;place-items:center;backdrop-filter:blur(4px);padding:16px}
+.modal[hidden]{display:none}
+.modal__inner{background:var(--panel);border:1px solid var(--border-hi);border-radius:8px;padding:28px;max-width:760px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.modal__title{margin:0 0 16px;font-family:var(--ui);font-size:22px;color:var(--amber);letter-spacing:1px;text-align:center}
+.modal__sub{color:var(--dim);text-align:center;font-style:italic;margin:0 0 20px;font-size:14px}
+.modal__text{color:var(--dim);white-space:pre-wrap;font-family:var(--font);line-height:1.6;font-size:14px}
+.modal__actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap}
+.btn{background:var(--panel-hi);border:1px solid var(--border-hi);color:var(--text);padding:8px 16px;border-radius:4px;cursor:pointer;font-family:var(--ui);font-size:13px;transition:all .15s}
+.btn:hover{border-color:var(--amber);color:var(--amber-hi)}
+.btn--primary{background:var(--amber);color:#1a1200;border-color:var(--amber);font-weight:600}
+.btn--primary:hover{background:var(--amber-hi);color:#1a1200}
+.btn--danger{background:#7f1d1d;color:#fecaca;border-color:#991b1b}
+.btn--danger:hover{background:#991b1b;color:#fee2e2}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.cmdbar.is-error{animation:shake .2s}
+.obj{cursor:pointer;transition:filter .2s}
+.obj:hover{filter:brightness(1.3) drop-shadow(0 0 4px currentColor)}
+.map-room{padding:4px 0;border-bottom:1px dotted var(--border);font-family:var(--mono);font-size:12px}
+.map-room--visited{color:var(--text)}
+.map-room--unvisited{color:var(--mute)}
+@media(max-width:1100px){.board{grid-template-columns:1fr 1fr;grid-template-rows:45% 1fr}.panel--room{grid-column:1/-1}.panel--side{grid-column:2}}
+@media(max-width:700px){.board{grid-template-columns:1fr;grid-template-rows:1fr;padding:0;gap:0}.panel{border-radius:0;border-left:none;border-right:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="topbar__brand"><span class="topbar__sigil">◈</span><span class="topbar__title">La Fortaleza</span></div>
+    <div class="topbar__location" id="location-name">el exterior de la fortaleza</div>
+    <div class="topbar__tools">
+      <button class="btn-icon" id="btn-map"  title="Mapa (advertencia)">🗺</button>
+      <button class="btn-icon" id="btn-help" title="Ayuda">?</button>
+      <button class="btn-icon" id="btn-save" title="Salvar">💾</button>
+      <button class="btn-icon" id="btn-load" title="Cargar">📂</button>
+      <button class="btn-icon" id="btn-new"  title="Nueva partida">↻</button>
+    </div>
+  </header>
+  <main class="board">
+    <section class="panel panel--room">
+      <header class="panel__head"><h2 class="panel__title" id="room-title">el exterior de la fortaleza</h2></header>
+      <div class="room-viewport" id="room-viewport"></div>
+      <footer class="room-desc" id="room-description"></footer>
+    </section>
+    <section class="panel panel--log">
+      <div class="log" id="log" role="log" aria-live="polite"></div>
+      <form class="cmdbar" id="cmdbar">
+        <span class="cmdbar__prompt">&gt;</span>
+        <input class="cmdbar__input" id="cmd-input" type="text" autocomplete="off" spellcheck="false" autofocus aria-label="Comando">
+        <button class="cmdbar__send" type="submit" title="Ejecutar">↵</button>
+      </form>
+      <div class="quick" id="quick-actions">
+        <button class="chip" data-verb="mirar">mirar</button>
+        <button class="chip" data-verb="ir">ir</button>
+        <button class="chip" data-verb="coger">coger</button>
+        <button class="chip" data-verb="dejar">dejar</button>
+        <button class="chip" data-verb="abrir">abrir</button>
+        <button class="chip" data-verb="romper">romper</button>
+        <button class="chip" data-verb="matar">matar</button>
+        <button class="chip" data-verb="interrogar">interrogar</button>
+        <button class="chip" data-verb="dar">dar</button>
+        <button class="chip" data-verb="pesar">pesar</button>
+        <button class="chip" data-verb="porciento">%</button>
+        <button class="chip" data-verb="terminar">terminar</button>
+        <button class="chip" data-verb="ayuda">ayuda</button>
+      </div>
+    </section>
+    <aside class="panel panel--side">
+      <header class="panel__head"><h2 class="panel__title">Pertenencias</h2></header>
+      <ul class="inventory" id="inventory"></ul>
+      <div class="weightbar">
+        <div class="weightbar__track"><div class="weightbar__fill" id="weight-fill"></div></div>
+        <span class="weightbar__label" id="weight-label">0 / 40</span>
+        <div class="weightbar__comment" id="weight-comment"></div>
+      </div>
+    </aside>
+  </main>
+  <footer class="statusbar">
+    <span id="status-mode">Normal</span>
+    <span id="status-progress">0 % explorado</span>
+    <span class="statusbar__hint">↑↓ historial · escriba "ayuda"</span>
+  </footer>
+</div>
+<div id="modal-root"></div>
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILIDADES
+   ═══════════════════════════════════════════════════════════════ */
+const $ = s => document.querySelector(s);
+const ARTICLES = new Set(['EL','LA','LOS','LAS','UN','UNA','POR','AL','DEL','DE']);
+
+function norm(s){
+  return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^\p{L}\p{N}\s]/gu,'').replace(/\s+/g,' ').trim().toUpperCase();
+}
+function ncmp(s){
+  return norm(s).split(' ').filter(w => w && !ARTICLES.has(w)).join(' ').toLowerCase();
+}
+const nwords = s => ncmp(s).split(' ').filter(Boolean);
+
+function eqWords(a,b){
+  const ta = nwords(a), tb = nwords(b);
+  if (!ta.length || !tb.length) return false;
+  return tb.every(t => ta.includes(t));
+}
+
+function shadeColor(hex, amt){
+  const c = hex.replace('#','');
+  const r = Math.max(0, Math.min(255, parseInt(c.slice(0,2),16) + amt));
+  const g = Math.max(0, Math.min(255, parseInt(c.slice(2,4),16) + amt));
+  const b = Math.max(0, Math.min(255, parseInt(c.slice(4,6),16) + amt));
+  return '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CONSTRUCTORES
+   ═══════════════════════════════════════════════════════════════ */
+const T   = (id,name,desc,w,readable)=>({id,t:'thing',name,desc,w:w||1,readable});
+const TR  = (id,name,desc,wants,hi,lo)=>({id,t:'troll',name,desc,wants,hi,lo,_happy:false});
+const GU  = (id,name,desc,conf,weap)=>({id,t:'guard',name,desc,confession:conf,lethalweap:weap});
+const L   = (id,name,desc,key,dest,pc)=>({id,t:'link',name,desc,key,dest,pc,_open:false});
+const OL  = (id,name,desc,dest,pc)=>({id,t:'openlink',name,desc,dest,pc,_open:true});
+const DL  = (id,name,desc,key,talisman,dest,pc)=>({id,t:'dangerlink',name,desc,key,talisman,dest,pc,_open:false});
+const DL2 = (id,name,desc,key,talisman,dest,pc)=>({id,t:'dangerlink2',name,desc,key,talisman,dest,pc,_open:false});
+const RL  = (id,name,desc,riddle,answer,dest,pc)=>({id,t:'riddlelink',name,desc,riddle,answer,dest,pc,_open:false});
+const H   = (id,name,desc,breaker,reveals)=>({id,t:'hidden',name,desc,breaker,reveals});
+
+/* ═══════════════════════════════════════════════════════════════
+   HABITACIONES (fiel a FORT1.PAS)
+   ═══════════════════════════════════════════════════════════════ */
+const ROOMS = {
+1:{name:'el exterior de la fortaleza',desc:'Las paredes son muy negras y al parecer, no tienen ventanas. Usted trata de ver el final de las torres, pero las nubes no se lo permiten.',svg:'exterior',objs:[
+  T('roble','Roble','Está completamente seco y lleno de mordiscos. Tiene las siguientes palabras talladas en el tronco: «Las palabras mágicas para abrir la puerta son obvias.»',200),
+  T('maza','Maza','Es muy pesada.',39),
+  T('pastel','Pastel de cerezas','¿Qué hace un pastel de cerezas en un lugar como este?',2),
+  TR('llamador','Llamador de bronce','Parece de carne, y tiene forma de murciélago.','Cigarro',
+     'Hay un nombre que vas a necesitar mucho: Rumpelstinsin.',
+     '¿Me puede regalar un cigarro?'),
+  L('p_ppal','Puerta principal','Inmensa y oprimente.','Abrete Sesamo',2,
+    'Su sombra desaparece lentamente al cruzar la puerta. Siente cómo el miedo se le enreda en los zapatos.'),
+  OL('tunel','Túnel','Parece muy largo.',4,'El olor de la carne descompuesta lo golpea. Usted siente ganas de vomitar.'),
+  H('pared','Pared solitaria','Usted no puede imaginar con qué motivo fue colocada ahí.','Ariete',
+    DL('p_sec1','Puerta secreta','Usted se pregunta a dónde conducirá.','','Antorcha',27,'Usted atraviesa la puerta.'))
+]},
+
+2:{name:'el Salón de recepciones',desc:'Parece hecho para criaturas cientos de veces más grandes que los humanos. Está desierto, pero usted siente que es observado.',svg:'interior',objs:[
+  H('monolito','Monolito de mármol','Es muy oscuro, pero a usted le parece que hay algo vivo en su interior.','Maza',
+    TR('trebol','Trébol','Tiene cinco hojas.','Vaso de agua',
+       'Busca a la doncella al lado del espejo. Que romperás con un hueso.',
+       'Dame agua, por favor...')),
+  L('p_ppal2','Puerta principal','Inmensa y oprimente.','Abrete Sesamo',1,'Usted se siente de regreso a la vida. Ha salido de La Fortaleza.'),
+  L('p_negra2','Puerta negra','Es muy negra.','',3,'Usted atraviesa la puerta sin dificultades.'),
+  T('retrato','Retrato','Es de Hitchcock. Usted recuerda algunas películas que le erizaron la piel: Psicosis, Vértigo y Los treinta y nueve escalones.',1)
+]},
+
+3:{name:'la Sala de juegos',desc:'Usted trata de imaginar cómo eran los juegos del salón. Hay doce mesas y cada una tiene doce erizos.',svg:'interior',objs:[
+  T('escoba','Escoba','Es una escoba voladora.',1),
+  RL('escalera','Escalera','La escalera está detrás de una puerta de cristal. Usted trata de ver cuántos escalones tiene, pero no puede.',
+     '¿Cuántos peldaños tiene la escalera?','treinta y nueve',5,
+     'Usted sube por la escalera. No se explica cómo, siendo tan larga, solo tiene treinta y nueve escalones.'),
+  T('insc3','Inscripción','Dice: "Cuando hayas llegado casi al final, tendrás que regresar, a no ser que hayas hablado con el murciélago."',10),
+  L('p_negra3','Puerta negra','Es muy negra.','',2,'Usted atraviesa la puerta sin dificultades.'),
+  L('p_azul3','Puerta azul','Esta puerta conduce al patio interior.','',4,'Usted atraviesa la puerta sin dificultades.'),
+  T('hilo','Hilo de Ariadna','Debe tener varios kilómetros de largo.',1)
+]},
+
+4:{name:'el Patio interior',desc:'El patio tiene forma de caracol. Cada uno o dos pasos se levanta una columna de mármol negro y se confunde en la altura con los árboles. Usted siente el crujido de las hojas secas bajo sus zapatos.',svg:'garden',objs:[
+  L('p_azul4','Puerta azul','Esta puerta conduce a la sala de juegos.','',3,'Usted atraviesa la puerta sin dificultades.'),
+  L('p_verde4','Puerta verde','Esta puerta conduce a la biblioteca.','',6,'Usted atraviesa la puerta sin dificultades.'),
+  TR('atenea','Estatua de Atenea','Fue hecha por Fidias, siete años después de su muerte. Le falta la lanza.','Lanza',
+     'Para llegar a los pulmones de la Bestia debes tener el talismán de aire.',
+     '¡Sal de mi presencia, estúpido mortal!'),
+  TR('hermes','Estatua de Hermes','Desde el techo caen gotas continuamente sobre su cabeza.','Paraguas',
+     'En la biblioteca hay un libro que conduce al jardín.',
+     'La humedad me destruye.'),
+  T('balanza','Balanza','La balanza tiene el plato en forma de mano. La aguja es muy delgada, hecha con varios bigotes de gato trenzados entre sí.',1)
+]},
+
+5:{name:'el Cuarto de espejos',desc:'Hay tantos espejos que no puede reconocer si usted es real o es una imagen de sí mismo.',svg:'interior',objs:[
+  T('hueso','Hueso de gato','Este es un hueso de gato (o de la imagen de un gato).',1),
+  L('escalera5','Escalera','Usted trata de ver hasta dónde llega, pero no puede. Está detrás de una puerta de cristal.','treinta y nueve',
+   3,'Usted se sorprende: La escalera tiene ahora muchos escalones más.'),
+  H('espejo','Espejo opaco','En realidad, usted no tiene idea de por qué es un espejo. Hay algo muy extraño en él.','Hueso de gato',
+    L('p_oculta5','Puerta oculta','Parece formada por diminutos fragmentos de cristal.','',14,'Su imagen regresa al atravesar la puerta.'))
+]},
+
+6:{name:'la Biblioteca',desc:'Hay miles de libros en este lugar. Todos tienen alguna hoja marcada con una servilleta.',svg:'interior',objs:[
+  L('p_verde6','Puerta verde','Esta puerta conduce al patio interior.','',4,'Usted atraviesa la puerta sin dificultades.'),
+  T('vaso','Vaso de agua','Por un momento cree ver un bote en el vaso.',1),
+  T('candelabro','Candelabro','La llama en su extremo está inmóvil, como si fuera de cera.',1),
+  L('libro','Libro','Es un libro normal.','',13,'¡Usted ha atravesado el libro!'),
+  GU('ciclo','Cíclope','Parece estar cuidando la puerta.',
+     '¡Arrrggghhhh! ¡Me has matado! Puedes pasar. La contraseña es "Bombus Rostomellaris".',
+     'Maza'),
+  L('puerta6','Puerta','Es una puerta para gigantes.','Bombus Rostomellaris',7,'Usted se encuentra del otro lado de la puerta.')
+]},
+
+7:{name:'Pasillo',desc:'Tiene tres puertas al lado y una al final.',svg:'interior',objs:[
+  T('antorcha','Antorcha','La llama parece bailar en su propia luz.',1),
+  L('puerta7','Puerta','Es una puerta para gigantes.','Bombus Rostomellaris',6,'Usted se encuentra del otro lado de la puerta.'),
+  L('p_vieja7','Puerta vieja','Es la puerta de las habitaciones de una bruja.','',8,'Usted ha entrado.'),
+  L('p_roja7','Puerta roja','Es la puerta del guerrero.','',9,'Usted se encuentra del otro lado de la puerta.'),
+  L('p_prohib7','Puerta prohibida','Esta puerta está prohibida para los humanos.','Luz',10,'Usted se encuentra del otro lado de la puerta.'),
+  L('p_gris7','Puerta gris','Esta puerta conduce a la sala de las infusiones.','',15,'Usted se encuentra del otro lado de la puerta.')
+]},
+
+8:{name:'la Alcoba de la bruja',desc:'Hasta un ciego descubriría que aquí habita una bruja. El cuarto tiene una ventana, pero usted no recuerda haberla visto desde afuera.',svg:'interior',objs:[
+  L('p_vieja8','Puerta vieja','Da al pasillo.','',7,'Usted ha salido.'),
+  T('polvo','Polvo mágico','Puede hacer invisible a cualquiera.',1),
+  T('pocion','Poción para crecer','Tiene un olor muy repugnante.',5),
+  DL('escaparate','Escaparate','Tiene las puertas llenas de arañazos.','','Candelabro',14,
+    'Usted cae durante varios minutos... Oye una voz que dice: «Sean gentiles con la doncella, regálenle una flor.»'),
+  TR('bruja','Bruja','Parece tener mil años.','Escoba',
+     'Escucha bien, hijo. Cuando te digan «Prohibido» invoca la luz. Recuerda que la palabra crea su significado.',
+     'Tráeme mi escoba y te daré un consejo.')
+]},
+
+9:{name:'el Cuarto del guerrero',desc:'El cuarto está muy ordenado. A usted le sorprende que no hayan armas.',svg:'interior',objs:[
+  L('p_roja9','Puerta roja','Da al pasillo.','',7,'Usted está en el pasillo nuevamente.'),
+  T('vendajes','Vendajes','Están manchados de sangre.',3),
+  H('cama','Cama','Es tan fuerte que solo con un hacha podría romperla.','Hacha',
+    L('p_cama9','Puerta','Está en el suelo.','',11,'Usted entra a la armería.')),
+  T('grabado','Grabado','En el grabado está usted, hablando con una muchacha.',3)
+]},
+
+10:{name:'el Laboratorio de la Bestia',desc:'Hay muchos frascos. A usted le llaman la atención los últimos: están llenos de homúnculos.',svg:'interior',objs:[
+  L('p_prohib10','Puerta prohibida','Esta puerta está prohibida para los humanos.','Luz',7,'Usted se encuentra en el otro lado de la puerta.'),
+  TR('homunculo','Homúnculo','Parece que escapó de algún frasco. Es tan pequeño que usted se arrodilla para verlo.','Poción para crecer',
+     'Para atravesar por el escaparate de la bruja, deberás llevar un candelabro. Mal harás si no lo haces.',
+     '¡Quiero crecer!'),
+  T('piedra','Piedra filosofal','Usted es el primer humano en ver la quinta esencia.',10),
+  T('maquina','Máquina del tiempo','Es muy parecida a una máquina de moler carne.',3)
+]},
+
+11:{name:'la Sala de armas',desc:'Este lugar parece salido del sueño de un guerrero.',svg:'interior',objs:[
+  T('espada','Espada','Es muy brillante.',5),
+  T('lanza','Lanza','Está hecha de piedra.',10),
+  T('arco','Arco','Es el arco de Odiseo.',5),
+  T('daga','Daga','Es afilada como la lengua de la serpiente bíblica.',3),
+  T('ariete','Ariete','Demasiado grande y pesado.',30),
+  T('latigo','Látigo','Parece una culebra.',2),
+  L('puerta11','Puerta','Está en el techo.','',9,'Usted regresa al cuarto del guerrero.')
+]},
+
+12:{name:'los Baños de la Bestia',desc:'El baño es tan grande que usted no puede ver las paredes que lo limitan.',svg:'organ',objs:[
+  L('p_verde12','Puerta verde','Conduce al jardín.','',13,'Usted entra al jardín.'),
+  T('rosa','Rosa','Es más hermosa que todas las doncellas que usted no ha visto.',1),
+  T('insc12','Inscripción','Dice: «¡Mate al Troll! Y no haga sus necesidades en el suelo.»',2),
+  T('espejo12','Espejo','Usted se ve a sí mismo entregándole unos polvos al Troll.',20),
+  TR('troll','Troll','Está mirándose en un espejo. Tiene una figura tan repulsiva que usted aparta la vista.','Polvo mágico',
+     'El corazón de unicornio te protegerá en el corazón de la Bestia.',
+     'No me mates, por favor. Haz que nadie pueda ver mi fealdad.')
+]},
+
+13:{name:'el Jardín',desc:'Se podrían construir varias ciudades en su interior.',svg:'garden',objs:[
+  T('insc13','Inscripción','Es un buen lugar para instalar una tienda de campaña, ¿no cree?',1),
+  T('cedro','Cedro','Le faltan algunas ramas. Al parecer, alguien las cortó para hacerse una cama.',41),
+  L('p_verde13','Puerta verde','Conduce a los baños de la Bestia.','',12,'Usted sale del jardín.'),
+  L('p_azul13','Puerta azul','Debe haber algo hermoso detrás de esta puerta.','',14,'Usted sale del jardín.'),
+  L('p_amar13','Puerta amarilla','Conduce a la sala de infusiones.','',15,'Usted sale del jardín.'),
+  L('p_hierro13','Puerta de hierro','Conduce a los calabozos.','',16,'Usted entra a los calabozos.'),
+  L('p_madera13','Puerta de madera','Conduce al almacén.','',23,'Usted sale del jardín.')
+]},
+
+14:{name:'la Alcoba de la doncella',desc:'Es una habitación muy pequeña y húmeda.',svg:'interior',objs:[
+  L('p_azul14','Puerta azul','Debe haber algo hermoso detrás de esta puerta.','',13,'Usted sale al jardín.'),
+  L('p_oculta14','Puerta oculta','Parece formada por diminutos fragmentos de cristal.','',5,'Su imagen regresa al atravesar la puerta.'),
+  T('cuadro','Cuadro','Está completamente pintado de negro.',10),
+  T('corazon','Corazón de unicornio','Aún late.',1),
+  L('escaparate14','Escaparate','Las puertas son doradas.','',8,'Usted sube durante varios minutos hasta llegar al escaparate de la bruja.'),
+  TR('doncella','Doncella','Nunca antes había contemplado tanta hermosura. Usted está como hipnotizado.','Rosa',
+     'La última habitación está al principio.',
+     '¡Qué brusco! Un caballero debe dirigirse a una dama de otra forma.')
+]},
+
+15:{name:'la Sala de infusiones',desc:'Hay varias mesas regadas por el suelo. Usted tiene la impresión de que ningún humano ha estado en ese lugar anteriormente.',svg:'interior',objs:[
+  L('p_gris15','Puerta gris','Da al pasillo.','',7,'Usted se encuentra del otro lado de la puerta.'),
+  L('p_amar15','Puerta amarilla','Conduce al jardín.','',13,'Usted sale al jardín.'),
+  T('taza','Taza de café','Humea.',1),
+  T('cigarro','Cigarro','Está encendido.',1),
+  GU('arpia','Arpía','Está desayunando. Usted recuerda a su suegra sin darse cuenta.',
+     '¡AAARRRGGG! Has acabado conmigo. El corazón se protege con un objeto de la doncella.',
+     'Espada')
+]},
+
+16:{name:'los Calabozos',desc:'Son tan húmedos que usted no resistiría ni unas horas dentro de ellos.',svg:'interior',objs:[
+  L('p_hierro16','Puerta de hierro','Conduce al jardín.','',13,'Usted sale al jardín.'),
+  T('paraguas','Paraguas','Está cerrado.',2),
+  T('talisman','Talismán de aire','Está hecho de cinco vientos amarrados con un cordón negro.',1),
+  TR('esqueleto','Esqueleto','Debe tener varios siglos.','Taza de café',
+     'Al entrar al estómago, lleva contigo un pastel.',
+     'Dame algo para calentarme la barriga, por favor.')
+]},
+
+17:{name:'Boca de la Bestia',desc:'Es como una boca humana, pero del tamaño de una casa.',svg:'organ',objs:[
+  L('p_triang17','Puerta triangular','Tiene forma de un triángulo de siete lados.','',25,'Usted sale de la boca de la Bestia.'),
+  OL('garganta17','Garganta','Es roja y carnosa.',18,'Usted atraviesa por la garganta de la Bestia.')
+]},
+
+18:{name:'Interior de la Bestia',desc:'Usted puede sentir los latidos del corazón de la Bestia, al igual que su respiración o el ruido de los líquidos revueltos en su estómago.',svg:'organ',objs:[
+  T('insc18','Inscripción','No continúe si no está protegido.',10),
+  L('garganta18','Garganta','Es roja y carnosa.','',17,'Usted atraviesa por la garganta de la Bestia.'),
+  DL('traquea','Tráquea','Luce igual que en los libros de biología que había en su escuela.','','Talismán de aire',19,'Usted atraviesa por la tráquea de la Bestia.'),
+  DL('esofago','Esófago','Parece un túnel.','','Pastel de cerezas',20,'Usted atraviesa por el esófago de la Bestia.'),
+  DL('arteria','Arteria principal','Conduce al corazón seguramente.','','Corazón de unicornio',21,'Usted atraviesa por la arteria principal de la Bestia.')
+]},
+
+19:{name:'Pulmones de la Bestia',desc:'Sopla un aire tan fuerte que usted se ha tirado al suelo.',svg:'organ',objs:[
+  L('traquea19','Tráquea','Luce igual que en los libros de biología que había en su escuela.','',18,'Usted atraviesa por la tráquea de la Bestia.'),
+  GU('pulmones','Centro de los pulmones','De aquí surge la vida de los pulmones.',
+     'Usted ha destruido los pulmones. Solo con un látigo podrás destruir el estómago.','Espada')
+]},
+
+20:{name:'el Estómago de la Bestia',desc:'Hay varios esqueletos humanos.',svg:'organ',objs:[
+  L('esofago20','Esófago','Parece un túnel.','',18,'Usted atraviesa por el esófago de la Bestia.'),
+  GU('estomago','Centro del estomago','De aquí surge la vida del estómago.',
+     '¡Usted ha matado al centro del estómago!','Látigo')
+]},
+
+21:{name:'el Corazón de la Bestia',desc:'Todo palpita rítmicamente. Usted siente cómo los latidos se adueñan del lugar, especialmente de su propio corazón.',svg:'organ',objs:[
+  L('arteria21','Arteria principal','Conduce al corazón seguramente.','',18,'Usted atraviesa por la arteria principal de la Bestia.'),
+  GU('corazon21','Centro del corazón','De aquí surge la vida del corazón.',
+     'Usted ha destruido el corazón. Busca el cerebro de la bestia ligero de equipaje. Solo el fuego puede destruirlo.','Daga')
+]},
+
+22:{name:'el Cerebro de la Bestia',desc:'Es como un tarjetero gigante. Cada idea está escrita en una tarjeta y, cuando es necesario, la tarjeta es sacada por una mano invisible y leída al resto de la Bestia.',svg:'organ',objs:[
+  T('insc22','Inscripción','El cerebro solo teme al fuego.',10),
+  GU('cerebro','Centro del cerebro','¡Usa la antorcha!','XVBCZXV XBVCZX BVZXC!!!!!','Antorcha')
+]},
+
+23:{name:'los Almacenes de la Fortaleza',desc:'Están llenos de carne humana. Usted aparta el cadáver de una mujer para poder observar bien el lugar.',svg:'interior',objs:[
+  T('hacha','Hacha','Está muy afilada.',10),
+  L('p_madera23','Puerta de madera','Conduce al jardín.','',13,'Usted sale del almacén.'),
+  L('p_verde23','Puerta verde','Usted presiente que hay algo muy grande detrás de ella.','',24,'Usted entra al páramo.'),
+  TR('raton','Ratón','Tiene puesto un delantal de alquimista.','Piedra filosofal',
+     'Cuidado con el túnel y la puerta de tela. Solo conducen a la muerte.',
+     'No tengo tiempo para atenderte. Llevo medio siglo buscando la quinta esencia.')
+]},
+
+24:{name:'un extenso páramo',desc:'Hay muy poca vegetación y el suelo es pantanoso. Usted nunca imaginó que el interior de la fortaleza fuera tan grande.',svg:'garden',objs:[
+  L('p_verde24','Puerta verde','Conduce al almacén.','',23,'Usted sale del páramo.'),
+  L('p_cristal24','Puerta de cristal','Es muy delgada.','Agua',25,'Usted sale del páramo.'),
+  OL('pozo','Pozo','Es muy profundo.',1,'Usted cae vertiginosamente por el pozo... está en el exterior de la fortaleza.'),
+  DL('tunel24','Túnel','Parece más acogedor que el túnel del exterior.','','nada',24,''),
+  GU('lobo','Lobo','Es del tamaño de un ternero. La única forma de pasar por la puerta de cristal es matándolo.',
+     'AAARRRRGGGG!!!! La palabra mágica es "Agua".','Látigo')
+]},
+
+25:{name:'Salón de cristal',desc:'Es como un caleidoscopio gigante. Cada varios segundos las paredes cambian de color y usted siente como si lo hubieran trasladado a otro lugar.',svg:'interior',objs:[
+  L('p_cristal25','Puerta de cristal','Es muy delgada.','Agua',24,'Usted sale al páramo.'),
+  L('p_tela25','Puerta de tela','Es una puerta normal, pero de tela.','',26,'Usted sale del salón de cristal.'),
+  RL('p_triang25','Puerta triangular','Tiene forma de un triángulo de siete lados.',
+     '¿Cuál es el nombre del duende?','Rumpelstinsin',17,'Usted entra a la boca de la Bestia.'),
+  TR('bailarina','Bailarina','Es muy joven.','Máquina del tiempo',
+     'Solo con una daga podrás matar el corazón.',
+     'Quiero ser joven para siempre.')
+]},
+
+26:{name:'celda pequeña',desc:'No hay forma alguna de salir.',svg:'interior',objs:[
+  T('insc26','Inscripción','Dice que usted pasará en esta celda el resto de sus días.',41)
+]},
+
+27:{name:'un puente de mármol',desc:'Es muy largo y estrecho.',svg:'interior',objs:[
+  TR('arana','Araña','Es un poco mayor que usted.','Arco',
+     'Busca al Minotauro y mátalo con la espada.',
+     '¡Pssssssss!'),
+  T('martillo','Martillo','Tiene dos mangos y tres cabezas.',2),
+  DL('p_sec27','Puerta secreta','Conduce al exterior de la fortaleza.','','Antorcha',1,'Usted atraviesa la puerta.'),
+  H('satana','Estatua de Satanás','Es infinitamente negra.','Cuadro',
+    L('p_oculta27','Puerta oculta','Conduce a la antesala del laberinto.','',28,'Usted atraviesa la puerta.')),
+  DL2('puerta27','Puerta','Conduce a la antesala del Laberinto.','','Espada',28,'Usted atraviesa la puerta.')
+]},
+
+28:{name:'la Antesala del Laberinto',desc:'Es una habitación muy confortable, pero usted siente algo malvado flotando en el aire.',svg:'interior',objs:[
+  L('p28','Puerta','Conduce al puente.','',27,'Usted atraviesa la puerta.'),
+  TR('crunch','Crunch','Es muy similar a una boca con patas.','Pastel de cerezas',
+     'El 12 te guiará en el Laberinto. Luego solo debes dar un paso.',
+     '¡Qué hambre!'),
+  H('columna','Columna de Cristal','Es muy alta.','Antorcha 3',
+    H('p_madera28','Puerta de madera','Parece muy frágil.','Martillo',
+      L('p_negra28','Puerta negra','Conduce al Jardín','',50,'Usted entra al Jardín.'))),
+  OL('p_verde28','Puerta verde','Conduce al Laberinto.',31,'Usted atraviesa la puerta.'),
+  TR('dedalo','Dédalo','Parece haber sido herido por el cuerno de un toro gigante.','Vendajes',
+     'Solo el hierro te protegerá contra las flores.',
+     'Me muero...')
+]},
+
+29:{name:'la cueva del Minotauro',desc:'Hay siete antorchas.',svg:'interior',objs:[
+  OL('p29','Puerta','Conduce al Laberinto.',47,'Usted atraviesa la puerta.'),
+  T('ant1','Antorcha 1','Es muy brillante.',2),
+  T('ant2','Antorcha 2','Es muy brillante.',2),
+  T('ant3','Antorcha 3','Es muy brillante.',2),
+  T('ant4','Antorcha 4','Es muy brillante.',2),
+  T('ant5','Antorcha 5','Es muy brillante.',2),
+  T('ant6','Antorcha 6','Está apagada.',2),
+  T('ant7','Antorcha 7','Es muy brillante.',2),
+  GU('minotauro','Minotauro','Está sentado en un enorme trono de rocas.',
+     '¡Me has matado! Coge la antorcha del número divino y rompe la columna de cristal.','Espada')
+]},
+
+30:{name:'el Salón de los elegidos',desc:'Usted se enorgullece: muy pocas personas han llegado hasta este salón. El cerebro de la Bestia está detrás de la puerta.',svg:'interior',objs:[
+  RL('p_dorada30','Puerta dorada','Es de oro macizo.',
+     'Invente un alfabeto (el mayor que pueda) con el que no pueda crearse a la Bestia.',
+     'cdfghjklmnopqruvwxyz',22,'¡Usted ha entrado al Cerebro de la Bestia!')
+]}
+};
+
+const LAB = {31:[32,28,38],32:[31,33,44],33:[26,32,34],34:[35,41,33],35:[34,36,46],
+  36:[49,35,37],37:[29,31,36],38:[26,39,31],39:[31,38,40],40:[31,26,39],
+  41:[33,34,42],42:[32,43,41],43:[26,42,44],44:[45,32,31],45:[44,32,31],
+  46:[47,33,35],47:[46,34,48],48:[31,49,47]};
+for (const k in LAB) {
+  const i = +k;
+  ROOMS[i] = {name:'un pasillo del Laberinto',
+    desc:'El techo está tan pegado al suelo que usted tiene que andar agachado. Hay tres puertas simétricas.',
+    svg:'labyrinth',
+    objs: LAB[i].map((dest,n) => OL('p'+(n+1)+'_r'+i,'Puerta '+(n+1),'Es idéntica a las otras dos.',dest,'Usted atraviesa la puerta.'))
+  };
+}
+ROOMS[49] = {name:'un pasillo del Laberinto',desc:'Hay una puerta que le conducirá a la antesala del Laberinto.',svg:'labyrinth',objs:[
+  OL('salida49','Salida','Conduce a la entrada del laberinto.',28,'Usted regresa a la entrada del Laberinto.')
+]};
+ROOMS[50] = {name:'el Jardín',desc:'Se podrían construir varias ciudades en su interior.',svg:'garden',objs:[
+  T('insc50','Inscripción','¡Cuidado! Este no es el Jardín verdadero.',1),
+  T('cedro50','Cedro','Le faltan algunas ramas. Al parecer, alguien las cortó para hacerse una cama.',41),
+  OL('pv50','Puerta verde','Conduce a los baños de la Bestia.',26,'Usted sale del jardín.'),
+  OL('pa50','Puerta azul','Debe haber algo hermoso detrás de esta puerta.',26,'Usted sale del jardín.'),
+  OL('pam50','Puerta amarilla','Conduce a la sala de infusiones.',26,'Usted sale del jardín.'),
+  RL('ph50','Puerta de hierro','Conduce a los calabozos.',
+     '¿Cuántas antorchas iluminan al Minotauro?','Seis',30,'Usted entra al salón de los elegidos.'),
+  OL('pm50','Puerta de madera','Conduce al almacén.',26,'Usted sale del jardín.')
+]};
+
+/* ═══════════════════════════════════════════════════════════════
+   ESTADO Y PUERTAS SINCRONIZADAS
+   ═══════════════════════════════════════════════════════════════ */
+const TOTAL_ROOMS = 50;
+const MAX_WEIGHT  = 40;
+let R, G, ARMED = null, history = [], histIdx = -1;
+
+const CONNECTORS    = { dar:'a', matar:'con', romper:'con', abrir:'con' };
+const TWO_REQUIRED  = ['dar'];
+const TWO_OPTIONAL  = ['matar','romper','abrir'];
+const INSTANT_VERBS = ['porciento','cls','ayuda'];
+const CONFIRM_VERBS = ['terminar'];
+
+const DOOR_TYPES = ['link','openlink','dangerlink','dangerlink2','riddlelink'];
+
+function cloneObj(o){
+  const c = {...o};
+  if (c.reveals) c.reveals = cloneObj(c.reveals);
+  return c;
+}
+
+function findReverseDoor(roomId, door){
+  const destRoom = R[door.dest];
+  if (!destRoom) return null;
+  const candidates = destRoom.objs.filter(o =>
+    DOOR_TYPES.includes(o.t) && o.dest === roomId
+  );
+  if (!candidates.length) return null;
+  const nameMatch = candidates.find(o => ncmp(o.name) === ncmp(door.name));
+  if (nameMatch) return nameMatch;
+  return candidates.length === 1 ? candidates[0] : null;
+}
+
+function setDoorOpen(roomId, door, open){
+  door._open = open;
+  const reverse = findReverseDoor(roomId, door);
+  if (reverse && reverse !== door) reverse._open = open;
+}
+
+function syncAllDoors(){
+  // Propaga apertura en ambos sentidos: si un lado está abierto (o es openlink), el otro también.
+  for (const roomId in R) {
+    for (const obj of R[roomId].objs) {
+      if (!DOOR_TYPES.includes(obj.t)) continue;
+      if (obj.t === 'openlink' || obj._open) {
+        const reverse = findReverseDoor(+roomId, obj);
+        if (reverse && reverse !== obj && !reverse._open) {
+          reverse._open = true;
+        }
+      }
+    }
+  }
+}
+
+function initGame(){
+  R = {};
+  for (const k in ROOMS) {
+    const room = ROOMS[k];
+    R[k] = {
+      name: room.name, desc: room.desc, svg: room.svg,
+      objs: room.objs.map(cloneObj)
+    };
+    for (const o of R[k].objs) {
+      if (o.t==='openlink') o._open = true;
+      else if (o.t==='link' || o.t==='riddlelink') o._open = false;
+      else if (o.t==='dangerlink' || o.t==='dangerlink2') {
+        o._open = (k==='18') || (o.id==='tunel24');
+      }
+    }
+  }
+  syncAllDoors();
+  G = { curr:1, bag:[], visited:new Set([1]), dead:false };
+  ARMED = null;
+  history = []; histIdx = -1;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LOG
+   ═══════════════════════════════════════════════════════════════ */
+function log(msg, cls){
+  const p = document.createElement('p');
+  p.className = 'log__msg' + (cls ? ' log__msg--'+cls : '');
+  p.textContent = msg;
+  $('#log').appendChild(p);
+  $('#log').scrollTop = 1e9;
+}
+function logSep(){
+  const hr = document.createElement('hr');
+  hr.className = 'log__sep';
+  $('#log').appendChild(hr);
+  $('#log').scrollTop = 1e9;
+}
+function clearLog(){ $('#log').innerHTML = ''; }
+
+/* ═══════════════════════════════════════════════════════════════
+   BÚSQUEDA
+   ═══════════════════════════════════════════════════════════════ */
+function findIn(list, name){
+  if (!name) return null;
+  const q = ncmp(name);
+  if (!q) return null;
+  const qWords = q.split(' ').filter(Boolean);
+  for (const o of list) if (ncmp(o.name) === q) return o;
+  let best = null, bestLen = 0;
+  for (const o of list) {
+    const w = nwords(o.name);
+    if (w.length && w.every(t => qWords.includes(t)) && w.length > bestLen) { best = o; bestLen = w.length; }
+  }
+  if (best) return best;
+  for (const o of list) {
+    const w = nwords(o.name);
+    if (w.length && qWords.every(t => w.includes(t))) return o;
+  }
+  return null;
+}
+const findInRoom = name => findIn(R[G.curr].objs, name);
+const findInBag  = name => findIn(G.bag, name);
+
+/* ═══════════════════════════════════════════════════════════════
+   PARSER
+   ═══════════════════════════════════════════════════════════════ */
+const VERBS = {
+  IR:'go',ATRAVESAR:'go',CRUZAR:'go',PASAR:'go',
+  COGER:'take',TOMAR:'take',
+  DEJAR:'drop',SOLTAR:'drop',
+  ABRIR:'open',
+  MATAR:'kill',ASESINAR:'kill',
+  MIRAR:'look',OBSERVAR:'look',
+  VER:'see',LEER:'see',
+  ROMPER:'break',FORZAR:'break',DESTROZAR:'break',
+  INTERROGAR:'ask',PREGUNTAR:'ask',
+  INVENTARIO:'inv',
+  DAR:'give',REGALAR:'give',
+  PESAR:'weigh',
+  PORCIENTO:'percent',
+  SALVAR:'save',CARGAR:'load',
+  EJECUTAR:'exec',
+  TERMINAR:'quit',ABANDONAR:'quit',
+  CLS:'cls',MIAR:'cls',ORINAR:'piss',
+  AYUDA:'help'
+};
+
+function preprocess(s){
+  return s
+    .replace(/\bal\b/gi,'a')
+    .replace(/\bpor\b/gi,'')
+    .replace(/\b(el|la|los|las|un|una|del|de)\b/gi,'')
+    .replace(/\s+/g,' ').trim();
+}
+function parse(input){
+  const clean = preprocess(input);
+  if (!clean) return {err:'vacio'};
+  const parts = clean.split(/\s+/);
+  const verb = VERBS[norm(parts[0])];
+  const rest = parts.slice(1).join(' ').trim();
+  return {verb, rest, raw:input};
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   APERTURA DE PUERTAS
+   ═══════════════════════════════════════════════════════════════ */
+function tryOpen(obj, key, roomId){
+  if (obj.t === 'riddlelink') {
+    if (key && ncmp(key) === ncmp(obj.answer)) {
+      setDoorOpen(roomId, obj, true);
+      log('Usted ha descifrado el acertijo correctamente.','success');
+      return true;
+    }
+    if (!key) { log('Debe resolver este acertijo:','hint'); log(obj.riddle,'hint'); }
+    else { log('Esa no es la respuesta.','error'); log(obj.riddle,'hint'); }
+    return false;
+  }
+  if (!obj.key) { setDoorOpen(roomId, obj, true); return true; }
+  if (ncmp(key) === ncmp(obj.key)) { setDoorOpen(roomId, obj, true); return true; }
+  log('Usted trata de abrir, pero no puede lograrlo.','error');
+  if (!key) log('Necesita unas palabras mágicas.','hint');
+  else log(`«${key}» no es la contraseña.`,'error');
+  return false;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMANDOS
+   ═══════════════════════════════════════════════════════════════ */
+function cmdGo(rest){
+  let target = rest, key = '';
+  const m = rest.match(/^(.+?)\s+(con|diciendo|respondiendo)\s+(.+)$/i);
+  if (m) { target = m[1].trim(); key = m[3].trim(); }
+
+  const room = R[G.curr];
+  const links = room.objs.filter(o => DOOR_TYPES.includes(o.t));
+  const obj = findIn(links, target);
+  if (!obj) {
+    const other = findIn(room.objs, target);
+    if (other) log(`«${other.name}» no es una salida.`,'error');
+    else log(target ? `No existe «${target}» en este lugar.` : 'Complete la oración. No sea ambiguo.','error');
+    return;
+  }
+
+  if (obj.t === 'riddlelink' && !obj._open) {
+    if (!key) {
+      log('Debe resolver este acertijo:','hint'); log(obj.riddle,'hint');
+      log(`Trate: «abrir ${obj.name} respondiendo <respuesta>».`,'hint');
+      return;
+    }
+    if (!tryOpen(obj, key, G.curr)) return;
+  }
+
+  if (!obj._open && obj.t !== 'openlink' && obj.t !== 'riddlelink') {
+    if (key) {
+      log('Usted se arrodilla, levanta los brazos y dice:','hint');
+      log(key+'!!!','dialog');
+      if (!tryOpen(obj, key, G.curr)) return;
+    } else if (obj.t === 'link' && !obj.key) {
+      setDoorOpen(G.curr, obj, true);
+    } else if (obj.t === 'dangerlink' || obj.t === 'dangerlink2') {
+      setDoorOpen(G.curr, obj, true);
+    } else {
+      log('OUCH! Usted se ha golpeado las narices.','error');
+      log('Trate de abrir antes.','hint');
+      return;
+    }
+  }
+
+  if (obj.t === 'dangerlink' || obj.t === 'dangerlink2') {
+    if (!moveTo(obj.dest)) return;
+    const has = !!findIn(G.bag, obj.talisman);
+    if (obj.t === 'dangerlink') {
+      if (!has) { log('No debí cruzar desprotegido.','error'); die(); return; }
+    } else {
+      if (has) { log('Usted llevaba un objeto que le impidió cruzar.','error'); die(); return; }
+    }
+    if (obj.pc) log(obj.pc,'desc');
+    return;
+  }
+
+  if (obj.pc) log(obj.pc,'desc');
+  moveTo(obj.dest);
+}
+
+function moveTo(dest){
+  if (G.dead) return false;
+  if (!R[dest]) { log('Error: destino inválido.','error'); return false; }
+  G.curr = dest;
+  if (!G.visited.has(dest)) G.visited.add(dest);
+  showRoom();
+  return true;
+}
+
+function cmdTake(rest){
+  if (norm(rest)==='TODO') { log('Mejor tome las cosas una a una.','error'); return; }
+  const obj = findInRoom(rest);
+  if (!obj || obj.t !== 'thing') {
+    if (obj) log(`«${obj.name}» no es algo que pueda coger.`,'error');
+    else log(rest ? `No existe «${rest}» en este lugar.` : 'Complete la oración. No sea ambiguo.','error');
+    return;
+  }
+  const total = G.bag.reduce((s,i)=>s+(i.w||0),0);
+  if (total + obj.w > MAX_WEIGHT) {
+    log(obj.w > MAX_WEIGHT ? 'Usted no puede cargar con eso.' : 'Sería demasiado peso.','error');
+    return;
+  }
+  R[G.curr].objs.splice(R[G.curr].objs.indexOf(obj),1);
+  G.bag.push(obj);
+  log('Ok.','success');
+  renderInventory(); renderSVG();
+}
+
+function cmdDrop(rest){
+  if (norm(rest)==='TODO') {
+    if (!G.bag.length) { log('Usted no lleva nada consigo.','error'); return; }
+    while (G.bag.length) R[G.curr].objs.push(G.bag.pop());
+    log('Usted deja todas sus pertenencias en el suelo.','success');
+    renderInventory(); renderSVG();
+    return;
+  }
+  const obj = findInBag(rest);
+  if (!obj) { log(rest ? `«${rest}» no está dentro de sus pertenencias.` : 'Complete la oración. No sea ambiguo.','error'); return; }
+  G.bag.splice(G.bag.indexOf(obj),1);
+  R[G.curr].objs.push(obj);
+  log('Ok.','success');
+  renderInventory(); renderSVG();
+}
+
+function cmdOpen(rest){
+  let target = rest, key = '';
+  const m = rest.match(/^(.+?)\s+(con|diciendo|respondiendo)\s+(.+)$/i);
+  if (m) { target = m[1].trim(); key = m[3].trim(); }
+
+  const room = R[G.curr];
+  const links = room.objs.filter(o => DOOR_TYPES.includes(o.t));
+  const obj = findIn(links, target);
+  if (!obj) {
+    const other = findIn(room.objs, target);
+    if (other) log(`«${other.name}» no es una puerta.`,'error');
+    else log(target ? `No existe «${target}» en este lugar.` : 'Complete la oración. No sea ambiguo.','error');
+    return;
+  }
+  if (obj._open || obj.t === 'openlink') { log('No es necesario.','hint'); return; }
+  if (key) { log('Usted se arrodilla, levanta los brazos y dice:','hint'); log(key+'!!!','dialog'); }
+  if (tryOpen(obj, key, G.curr)) { log('Ok.','success'); renderSVG(); }
+}
+
+function cmdBreak(rest){
+  let target = rest, weapon = '';
+  const m = rest.match(/^(.+?)\s+con\s+(.+)$/i);
+  if (m) { target = m[1].trim(); weapon = m[2].trim(); }
+
+  const room = R[G.curr];
+  const obj = findIn(room.objs.filter(o=>o.t==='hidden'), target);
+  if (!obj) {
+    const other = findIn(room.objs, target);
+    if (other) log('Usted no puede romper eso.','error');
+    else log(target ? `No existe «${target}» en este lugar.` : 'Complete la oración. No sea ambiguo.','error');
+    return;
+  }
+  if (weapon && !findInBag(weapon)) { log(`«${weapon}» no está dentro de sus pertenencias.`,'error'); return; }
+  if (eqWords(obj.breaker, weapon)) {
+    log('CRASSSHHH!!!','success');
+    log('¡Usted ha descubierto algo!','success');
+    const idx = room.objs.indexOf(obj);
+    room.objs.splice(idx,1);
+    if (obj.reveals) room.objs.push(obj.reveals);
+    renderSVG();
+  } else {
+    log('Usted trata, pero no lo consigue.','error');
+  }
+}
+
+function cmdKill(rest){
+  let target = rest, weapon = '';
+  const m = rest.match(/^(.+?)\s+con\s+(.+)$/i);
+  if (m) { target = m[1].trim(); weapon = m[2].trim(); }
+
+  const room = R[G.curr];
+  const npcs = room.objs.filter(o=>o.t==='troll' || o.t==='guard');
+  const obj = findIn(npcs, target);
+  if (!obj) {
+    const other = findIn(room.objs, target);
+    if (other) log('No puede matar a algo que nunca tuvo vida.','error');
+    else log(target ? `No existe «${target}» en este lugar.` : 'Complete la oración. No sea ambiguo.','error');
+    return;
+  }
+  if (weapon && !findInBag(weapon)) { log(`«${weapon}» no está dentro de sus pertenencias.`,'error'); return; }
+
+  if (obj.t === 'troll') {
+    log('AAAAARRRGGGGG!!!','error');
+    room.objs.splice(room.objs.indexOf(obj),1);
+    renderSVG(); checkGoal();
+    return;
+  }
+  if (obj.t === 'guard') {
+    if (eqWords(obj.lethalweap, weapon)) {
+      if (obj.confession) log(obj.confession,'hint');
+      room.objs.splice(room.objs.indexOf(obj),1);
+      renderSVG(); checkGoal();
+    } else {
+      log('Todos sus esfuerzos son en vano. Probablemente no esté usando el objeto indicado.','error');
+    }
+  }
+}
+
+function cmdAsk(rest){
+  const npcs = R[G.curr].objs.filter(o=>o.t==='troll' || o.t==='guard');
+  const obj = findIn(npcs, rest);
+  if (!obj) {
+    const other = findIn(R[G.curr].objs, rest);
+    if (other) log('¿Hablando solo?','error');
+    else log(rest ? `«${rest}» no está aquí.` : 'Complete la oración. No sea ambiguo.','error');
+    return;
+  }
+  if (obj.t === 'troll') log(obj._happy ? obj.hi : obj.lo, 'dialog');
+  else log('No desea hablar con usted.','hint');
+}
+
+function cmdGive(rest){
+  const idx = rest.search(/\s+a\s+/i);
+  if (idx < 0) { log('Complete la oración. No sea ambiguo.','error'); return; }
+  const what = rest.slice(0, idx).trim();
+  const who  = rest.slice(idx).replace(/\s+a\s+/i,'').trim();
+
+  const w = findInBag(what);
+  if (!w) { log(`«${what}» no está dentro de sus pertenencias.`,'error'); return; }
+
+  const room = R[G.curr];
+  const obj = findIn(room.objs.filter(o=>o.t==='troll'), who);
+  if (!obj) {
+    const other = findIn(room.objs, who);
+    if (other) log('Su regalo no es aceptado.','error');
+    else log(`«${who}» no está aquí.`,'error');
+    return;
+  }
+  const ok = eqWords(obj.wants, w.name);
+  G.bag.splice(G.bag.indexOf(w),1);
+  if (ok) {
+    log('Muchas gracias. Hace mucho que esperaba por esto.','success');
+    obj._happy = true;
+    if (obj.hi) log(obj.hi,'dialog');
+  } else {
+    log('¡Qué amable! Gracias...','dialog');
+  }
+  renderInventory(); renderSVG(); checkGoal();
+}
+
+function cmdSee(rest){
+  const obj = findInRoom(rest) || findInBag(rest);
+  if (!obj) { log(rest ? `No existe «${rest}» en este lugar ni en sus pertenencias.` : 'Complete la oración. No sea ambiguo.','error'); return; }
+  log(obj.desc || obj.name,'desc');
+  if (obj.readable) log(obj.readable,'hint');
+}
+
+function cmdLook(){
+  const room = R[G.curr];
+  log(`Usted se encuentra en ${room.name}.`,'room');
+  log(room.desc,'desc');
+  if (room.objs.length) {
+    log('Usted ve:','desc');
+    room.objs.forEach(o => log('  · '+o.name,'desc'));
+  }
+}
+
+function cmdInv(){
+  if (!G.bag.length) { log('Usted no lleva nada consigo.','error'); return; }
+  log('Sus pertenencias son:','desc');
+  G.bag.forEach(o => log(`  · ${o.name} (${o.w||0})`,'desc'));
+}
+
+function cmdWeigh(rest){
+  if (!findInBag('Balanza')) { log('Usted no trae la balanza.','error'); return; }
+  const t = findInBag(rest) || findInRoom(rest);
+  if (!t) { log(rest ? `No hay «${rest}» en este lugar.` : 'Complete la oración. No sea ambiguo.','error'); return; }
+  log(`Usted coloca el objeto en el plato de la balanza. La aguja indica ${t.w||1} bolsa${(t.w||1)===1?'':'s'}.`,'desc');
+}
+
+function cmdPercent(){
+  log(`Usted ha avanzado un ${Math.round(G.visited.size / TOTAL_ROOMS * 100)}%.`,'hint');
+}
+
+function cmdSave(){
+  try {
+    localStorage.setItem('fortaleza_save', JSON.stringify({
+      curr: G.curr, bag: G.bag, visited: [...G.visited], dead: G.dead, rooms: R
+    }));
+    log('Partida salvada.','success');
+  } catch(e) { log('Error al salvar: '+e.message,'error'); }
+}
+
+function cmdLoad(){
+  const saved = localStorage.getItem('fortaleza_save');
+  if (!saved) { log('No hay partida guardada.','error'); return; }
+  try {
+    const st = JSON.parse(saved);
+    R = st.rooms;
+    G = { curr:st.curr, bag:st.bag, visited:new Set(st.visited), dead:st.dead };
+    ARMED = null;
+    syncAllDoors();
+    clearLog();
+    log('Partida cargada.','success');
+    showRoom();
+  } catch(e) { log('Error al cargar: '+e.message,'error'); }
+}
+
+function cmdQuit(){ log('Usted se ha quitado la vida.','error'); die(); }
+function cmdCls(){ clearLog(); }
+function cmdPiss(){ log('Usted se asegura de que nadie está mirando y... Ah, ¡qué alivio!','dialog'); }
+
+function cmdHelp(){
+  ['Vocabulario:',
+   '  ir / atravesar / cruzar / pasar <puerta> [con <clave>]',
+   '  coger / tomar <objeto>',
+   '  dejar / soltar <objeto> | todo',
+   '  abrir <puerta> [con|diciendo|respondiendo <clave>]',
+   '  matar / asesinar <quien> [con <arma>]',
+   '  mirar [<objeto>] / observar / ver / leer',
+   '  romper / forzar / destrozar <objeto> [con <herramienta>]',
+   '  interrogar / preguntar <personaje>',
+   '  dar / regalar <objeto> a <personaje>',
+   '  inventario · pesar <objeto> · porciento',
+   '  salvar · cargar · terminar · ayuda',
+   '',
+   'Consejo: pulse un botón de comando y haga clic sobre los objetos.'
+  ].forEach(l => log(l,'hint'));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EJECUTOR
+   ═══════════════════════════════════════════════════════════════ */
+function execute(input){
+  if (G.dead) { log('Lamento informarle que usted está muerto.','error'); return; }
+  const p = parse(input);
+  logSep();
+  log('> '+input,'cmd');
+  history.push(input); histIdx = -1;
+  if (p.err==='vacio') return;
+  if (p.verb === 'quit') { showConfirmTerminate(); return; }
+  switch (p.verb) {
+    case 'go':      return cmdGo(p.rest);
+    case 'take':    return cmdTake(p.rest);
+    case 'drop':    return cmdDrop(p.rest);
+    case 'open':    return cmdOpen(p.rest);
+    case 'kill':    return cmdKill(p.rest);
+    case 'look':    return p.rest ? cmdSee(p.rest) : cmdLook();
+    case 'see':     return cmdSee(p.rest);
+    case 'break':   return cmdBreak(p.rest);
+    case 'ask':     return cmdAsk(p.rest);
+    case 'inv':     return cmdInv();
+    case 'give':    return cmdGive(p.rest);
+    case 'weigh':   return cmdWeigh(p.rest);
+    case 'percent': return cmdPercent();
+    case 'save':    return cmdSave();
+	case 'load':    return showConfirmLoad();
+    case 'cls':     return cmdCls();
+    case 'piss':    return cmdPiss();
+    case 'help':    return cmdHelp();
+    default: log('No le comprendo.','error');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMANDOS ARMADOS
+   ═══════════════════════════════════════════════════════════════ */
+function setInput(v){ $('#cmd-input').value = v; }
+
+function updateChipStates(){
+  document.querySelectorAll('.chip[data-verb]').forEach(c => {
+    c.classList.toggle('is-armed', !!ARMED && c.dataset.verb === ARMED.verb);
+  });
+}
+
+function syncArmedInput(){
+  if (!ARMED) { setInput(''); return; }
+  const { verb, parts } = ARMED;
+  let v = verb;
+  if (parts.length >= 1) v += ' ' + parts[0];
+  if (parts.length >= 2) v += ' ' + (CONNECTORS[verb] || '') + ' ' + parts[1];
+  else if (parts.length === 1 && CONNECTORS[verb]) v += ' ' + CONNECTORS[verb] + ' ';
+  else v += ' ';
+  setInput(v);
+}
+
+function armVerb(verb){
+  if (CONFIRM_VERBS.includes(verb)) { showConfirmTerminate(); return; }
+  if (INSTANT_VERBS.includes(verb)) {
+    if (ARMED) { ARMED = null; updateChipStates(); setInput(''); }
+    execute(verb);
+    return;
+  }
+  if (ARMED && ARMED.verb === verb) {
+    ARMED = null; updateChipStates(); setInput('');
+    return;
+  }
+  ARMED = { verb, parts: [] };
+  syncArmedInput();
+  updateChipStates();
+  $('#cmd-input').focus();
+}
+
+function clickObject(obj, source){
+  if (!ARMED) { execute('mirar ' + obj.name); return; }
+  const v = ARMED.verb;
+  if (v === 'coger' && source !== 'room') { log('No puede coger lo que ya tiene.','error'); return; }
+  if (v === 'dejar' && source !== 'bag')  { log('Solo puede dejar lo que lleva consigo.','error'); return; }
+  if (v === 'dar' && ARMED.parts.length === 0 && source !== 'bag') {
+    log('Debe dar algo que lleve consigo.','error'); return;
+  }
+  if ((v === 'matar' || v === 'romper' || v === 'abrir') &&
+      ARMED.parts.length === 1 && source !== 'bag') {
+    log('El instrumento debe estar entre sus pertenencias.','error'); return;
+  }
+  if (ARMED.parts.includes(obj.name)) return;
+
+  ARMED.parts.push(obj.name);
+  syncArmedInput();
+
+  const len = ARMED.parts.length;
+  if (TWO_REQUIRED.includes(v) && len >= 2) return executeArmed();
+  if (TWO_REQUIRED.includes(v)) return;
+  if (TWO_OPTIONAL.includes(v) && len >= 2) return executeArmed();
+  if (TWO_OPTIONAL.includes(v)) return;
+  if (len >= 1) executeArmed();
+}
+
+function executeArmed(){
+  if (!ARMED) return;
+  const { verb, parts } = ARMED;
+  let cmd = verb;
+  if (parts.length >= 1) cmd += ' ' + parts[0];
+  if (parts.length >= 2) cmd += ' ' + (CONNECTORS[verb] || '') + ' ' + parts[1];
+  ARMED = null;
+  updateChipStates();
+  setInput('');
+  execute(cmd);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MUERTE / VICTORIA
+   ═══════════════════════════════════════════════════════════════ */
+function die(){
+  if (G.dead) return;
+  G.dead = true;
+  $('#status-mode').textContent = 'Muerto';
+  setTimeout(()=>{
+    showModal(`
+      <div class="modal" id="modal-die"><div class="modal__inner" style="text-align:center">
+        <h2 class="modal__title" style="color:var(--red)">☠ Ha muerto</h2>
+        <p class="modal__text">Su entierro se efectuará el próximo domingo a las 3:00 am. Está invitado.</p>
+        <div class="modal__actions" style="justify-content:center">
+          <button class="btn btn--primary" onclick="document.getElementById('modal-die').remove(); newGame()">Reintentar</button>
+        </div>
+      </div></div>`);
+  }, 600);
+}
+
+function checkGoal(){
+  if (G.dead) return;
+  const centros = ['Centro de los pulmones','Centro del estomago','Centro del corazón','Centro del cerebro'];
+  const ids = [19,20,21,22];
+  for (let i=0;i<centros.length;i++) if (R[ids[i]].objs.find(o=>o.name===centros[i])) return;
+  if (R[12].objs.find(o=>o.name==='Troll')) return;
+  win();
+}
+
+function win(){
+  G.dead = true;
+  setTimeout(()=>{
+    showModal(`
+      <div class="modal" id="modal-win"><div class="modal__inner">
+        <h2 class="modal__title">✦ Victoria ✦</h2>
+        <div class="modal__text">Usted ha vencido a la Bestia.
+Parece ser una persona persistente y eso es un mérito muy grande.
+La persistencia es indispensable para los que luchan por el bien,
+sobre todo porque los que luchan por el mal son muy persistentes también.
+
+Veremos si en la próxima versión de La Fortaleza tiene igual suerte.
+
+                                             Un servidor:
+                                             M. Cepero</div>
+        <div class="modal__actions" style="justify-content:center">
+          <button class="btn btn--primary" onclick="document.getElementById('modal-win').remove(); newGame()">Nueva partida</button>
+        </div>
+      </div></div>`);
+  }, 400);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SVG: PUERTAS, OBJETOS Y ESTADOS
+   ═══════════════════════════════════════════════════════════════ */
+const BG = {
+  exterior:['#050510','#1a1a2e'],
+  interior:['#12121f','#08080f'],
+  organ:['#3a0a1a','#1a0510'],
+  garden:['#0a1a0f','#050a05'],
+  labyrinth:['#0a0a15','#050508']
+};
+
+function doorColor(name){
+  const n = norm(name).toLowerCase();
+  if (/negra|negro/.test(n))     return '#5a5a80';
+  if (/azul/.test(n))            return '#3b82f6';
+  if (/verde/.test(n))           return '#22c55e';
+  if (/amarill/.test(n))         return '#eab308';
+  if (/gris/.test(n))            return '#9ca3af';
+  if (/roj/.test(n))             return '#dc2626';
+  if (/dorad|oro/.test(n))       return '#fbbf24';
+  if (/cristal/.test(n))         return '#93c5fd';
+  if (/hierro/.test(n))          return '#9ca3af';
+  if (/madera/.test(n))          return '#a16207';
+  if (/tela/.test(n))            return '#a78bfa';
+  if (/prohibid/.test(n))        return '#7c3aed';
+  if (/vieja/.test(n))           return '#92400e';
+  if (/secreta|oculta/.test(n))  return '#c084fc';
+  return '#a0a0c0';
+}
+
+function renderSVG(){
+  const room = R[G.curr];
+  const W = 800, H = 560;
+  const [c1, c2] = BG[room.svg] || BG.interior;
+
+  const things  = room.objs.filter(o=>o.t==='thing');
+  const npcs    = room.objs.filter(o=>o.t==='troll' || o.t==='guard');
+  const hiddens = room.objs.filter(o=>o.t==='hidden');
+  const links   = room.objs.filter(o => DOOR_TYPES.includes(o.t));
+
+  let s = `<svg class="room-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/>
+    </linearGradient></defs>
+    <rect width="${W}" height="${H}" fill="url(#bg)"/>
+    <rect x="26" y="26" width="${W-52}" height="${H-52}" fill="none" stroke="#2a2a3f" stroke-width="2" rx="8"/>
+    <text x="${W/2}" y="56" text-anchor="middle" fill="#8888a0" font-family="Georgia,serif" font-size="12" font-style="italic">${room.name}</text>`;
+
+  const objRow = [...things, ...npcs, ...hiddens];
+  if (objRow.length) {
+    const cols = Math.min(4, objRow.length);
+    const cw = 700 / cols;
+    objRow.forEach((o, i) => {
+      const col = i % cols, row = Math.floor(i / cols);
+      const x = 50 + col*cw + cw/2;
+      const y = 140 + row*110;
+      s += renderObjSVG(o, x, y);
+    });
+  }
+
+  if (links.length) {
+    const lw = 720 / links.length;
+    links.forEach((o, i) => {
+      const x = 40 + i*lw + lw/2;
+      s += renderLinkSVG(o, x, 470);
+    });
+  }
+
+  s += `</svg>`;
+  $('#room-viewport').innerHTML = s;
+  $('#room-viewport').querySelectorAll('.obj').forEach(el=>{
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      const obj = findIn(R[G.curr].objs, el.dataset.name);
+      if (!obj) return;
+      if (ARMED) { clickObject(obj, 'room'); return; }
+      const type = obj.t;
+      if (DOOR_TYPES.includes(type)) execute('ir ' + obj.name);
+      else if (type === 'troll')     execute('interrogar ' + obj.name);
+      else                           execute('mirar ' + obj.name);
+    });
+  });
+}
+
+function renderObjSVG(o, x, y){
+  let col = '#a0a0c0', icon = '◆';
+  if (o.t === 'troll')       { col = o._happy ? '#4ade80' : '#f87171'; icon = '☺'; }
+  else if (o.t === 'guard')  { col = '#f87171'; icon = '☠'; }
+  else if (o.t === 'hidden') { col = '#fbbf24'; icon = '▣'; }
+  return `<g class="obj" data-type="${o.t}" data-name="${o.name}" style="color:${col}">
+    <circle cx="${x}" cy="${y}" r="28" fill="#0a0a15" stroke="${col}" stroke-width="2" ${o.t==='hidden'?'stroke-dasharray="4,3"':''}/>
+    <text x="${x}" y="${y+8}" text-anchor="middle" fill="${col}" font-size="22">${icon}</text>
+    <text x="${x}" y="${y+48}" text-anchor="middle" fill="${col}" font-size="11" font-family="Georgia,serif">${o.name}</text>
+  </g>`;
+}
+
+function renderLinkSVG(o, x, y){
+  const isOpen = (o.t === 'openlink') || o._open;
+  const color  = doorColor(o.name);
+  const isDoor = /puerta|escaparate/i.test(o.name);
+  const W = 44, H = 70;
+  const left = x - W/2, top = y - H/2, right = x + W/2, bot = y + H/2;
+  const darker = shadeColor(color, -45);
+  const lighter = shadeColor(color, 40);
+
+  let s = `<g class="obj" data-type="${o.t}" data-name="${o.name}" style="color:${color}">`;
+
+  if (isDoor) {
+    s += `<rect x="${left}" y="${top}" width="${W}" height="${H}" fill="#0a0a15" stroke="${color}" stroke-width="2.5"/>`;
+    if (isOpen) {
+      s += `<rect x="${left+3}" y="${top+3}" width="${W-6}" height="${H-6}" fill="#050508"/>`;
+      const lw = W * 0.34;
+      s += `<polygon points="${left+3},${top+4} ${left+3+lw},${top+12} ${left+3+lw},${bot-12} ${left+3},${bot-4}" fill="${color}" stroke="${darker}" stroke-width="1.5"/>`;
+      s += `<line x1="${left+6}" y1="${top+16}" x2="${left+3+lw-3}" y2="${top+18}" stroke="${lighter}" stroke-width="0.8" opacity="0.7"/>`;
+      s += `<line x1="${left+6}" y1="${bot-18}" x2="${left+3+lw-3}" y2="${bot-16}" stroke="${darker}" stroke-width="0.8" opacity="0.5"/>`;
+      s += `<circle cx="${left+3+lw-5}" cy="${y-2}" r="2.2" fill="#f0c46a" stroke="${darker}" stroke-width="0.5"/>`;
+      s += `<text x="${right-9}" y="${y+6}" text-anchor="middle" fill="#4ade80" font-size="12" opacity="0.85">→</text>`;
+    } else {
+      s += `<rect x="${left+3}" y="${top+3}" width="${W-6}" height="${H-6}" fill="${color}" stroke="${darker}" stroke-width="1"/>`;
+      s += `<line x1="${left+6}" y1="${top+9}" x2="${right-6}" y2="${top+9}" stroke="${lighter}" stroke-width="0.9" opacity="0.7"/>`;
+      s += `<line x1="${left+6}" y1="${top+9}" x2="${left+6}" y2="${bot-6}" stroke="${lighter}" stroke-width="0.9" opacity="0.5"/>`;
+      s += `<circle cx="${right-9}" cy="${y-2}" r="2.4" fill="#f0c46a" stroke="${darker}" stroke-width="0.5"/>`;
+      if (o.key || o.t === 'riddlelink') {
+        s += `<text x="${x}" y="${y+6}" text-anchor="middle" fill="#fbbf24" font-size="14">🔒</text>`;
+      }
+    }
+  } else {
+    const ico = isOpen ? '▶' : '◯';
+    s += `<rect x="${left}" y="${top}" width="${W}" height="${H}" rx="6" fill="#0a0a15" stroke="${color}" stroke-width="2"/>`;
+    s += `<text x="${x}" y="${y+8}" text-anchor="middle" fill="${color}" font-size="24">${ico}</text>`;
+  }
+
+  s += `<text x="${x}" y="${bot+16}" text-anchor="middle" fill="${color}" font-size="10" font-family="Georgia,serif">${o.name}</text>`;
+  s += `</g>`;
+  return s;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PANELES
+   ═══════════════════════════════════════════════════════════════ */
+function showRoom(){
+  ARMED = null;
+  updateChipStates();
+  setInput('');
+  const room = R[G.curr];
+  $('#location-name').textContent = room.name;
+  $('#room-title').textContent = room.name;
+  $('#room-description').textContent = room.desc;
+  renderSVG();
+  renderInventory();
+  updateStatus();
+  cmdLook();
+}
+
+function renderInventory(){
+  const ul = $('#inventory');
+  if (!G.bag.length) {
+    ul.innerHTML = '<li class="inv-empty">Vacío</li>';
+  } else {
+    ul.innerHTML = G.bag.map(o =>
+      `<li class="inv-item" data-name="${o.name}">
+         <span>${o.name}</span>
+         <span class="inv-item__weight">${o.w||0}</span>
+       </li>`).join('');
+    ul.querySelectorAll('.inv-item').forEach(li => {
+      li.addEventListener('click', () => {
+        const obj = findInBag(li.dataset.name);
+        if (!obj) return;
+        if (ARMED) { clickObject(obj, 'bag'); return; }
+        execute('mirar ' + obj.name);
+      });
+    });
+  }
+  const total = G.bag.reduce((s,i)=>s+(i.w||0),0);
+  const left  = MAX_WEIGHT - total;
+  $('#weight-fill').style.width = Math.min(100, total/MAX_WEIGHT*100)+'%';
+  $('#weight-label').textContent = total+' / '+MAX_WEIGHT;
+  let comment = '';
+  if (G.bag.length > 0) {
+    if (left === 0)      comment = 'Usted no puede ni con un átomo más.';
+    else if (left === 1) comment = 'Usted está a punto de agotar sus capacidades.';
+    else                 comment = `Usted podría cargar ${left} bolsas más.`;
+  }
+  $('#weight-comment').textContent = comment;
+}
+
+function updateStatus(){
+  $('#status-mode').textContent = G.dead ? 'Muerto' : 'Normal';
+  $('#status-progress').textContent = Math.round(G.visited.size / TOTAL_ROOMS * 100)+' % explorado';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODALES
+   ═══════════════════════════════════════════════════════════════ */
+function showModal(html){ $('#modal-root').innerHTML = html; }
+
+function showIntro(){
+  showModal(`
+    <div class="modal" id="modal-intro"><div class="modal__inner">
+      <h2 class="modal__title">◈ La Fortaleza ◈</h2>
+      <p class="modal__sub">En las entrañas de la Bestia</p>
+      <div class="modal__text" style="max-height:50vh;overflow-y:auto">Usted es un hombre común, sumergido en una vida rutinaria y mediocre. Una mañana encuentra una carta junto a la puerta.
+
+"Estimado señor: Tengo el alto honor de comunicarle que usted ha sido designado para cumplir una de las misiones más importantes de la historia del hombre: Eliminar a la Bestia.
+
+La Bestia es una de las criaturas más temidas y misteriosas del universo. Habita un lugar llamado la Fortaleza, aunque hay quienes dicen que la Bestia y la Fortaleza son una misma cosa. Nadie ha visto a la Bestia (quienes lo hicieron no pudieron contarlo nunca).
+
+Su misión es: adentrarse en la Fortaleza y matar a la Bestia. Nada más.
+
+                                              General X
+                                   Jefe de la Oficina de Casualidades"
+
+Objetivo: destruir los Centros de los pulmones, estómago, corazón y cerebro, y eliminar al Troll de los Baños de la Bestia. Solo entonces habrá vencido.</div>
+      <div class="modal__actions">
+        <button class="btn btn--primary" onclick="document.getElementById('modal-intro').remove(); newGame()">Comenzar</button>
+      </div>
+    </div></div>`);
+}
+
+function showHelp(){
+  showModal(`
+    <div class="modal" id="modal-help"><div class="modal__inner">
+      <h2 class="modal__title">Comandos</h2>
+      <div class="modal__text" style="font-family:var(--mono);font-size:13px">ir / atravesar / cruzar / pasar &lt;puerta&gt; [con &lt;clave&gt;]
+coger / tomar &lt;objeto&gt;
+dejar / soltar &lt;objeto&gt; | todo
+abrir &lt;puerta&gt; [con|diciendo|respondiendo &lt;clave&gt;]
+matar / asesinar &lt;quien&gt; [con &lt;arma&gt;]
+mirar [&lt;objeto&gt;] / observar / ver / leer
+romper / forzar / destrozar &lt;objeto&gt; [con &lt;herramienta&gt;]
+interrogar / preguntar &lt;personaje&gt;
+dar / regalar &lt;objeto&gt; a &lt;personaje&gt;
+inventario · pesar &lt;objeto&gt; · porciento
+salvar · cargar · terminar · ayuda
+
+Consejo: pulse un botón de comando y haga clic sobre los objetos.</div>
+      <div class="modal__actions">
+        <button class="btn" onclick="document.getElementById('modal-help').remove()">Cerrar</button>
+      </div>
+    </div></div>`);
+}
+
+function showConfirmTerminate(){
+  ARMED = null; updateChipStates(); setInput('');
+  showModal(`
+    <div class="modal" id="modal-terminate"><div class="modal__inner">
+      <h2 class="modal__title">Abandonar la empresa</h2>
+      <div class="modal__text">«Los muros de la Fortaleza han visto a muchos hombres entrar. Pocos han salido. Y de los que salieron, ninguno volvió a ser el mismo.
+
+Los valientes no huyen, pero los sabios saben cuándo la retirada es más digna que la carnicería. ¿Está usted seguro de que desea abandonar esta misión, dejando a la Bestia libre para seguir devorando?»
+
+                                    — Consejos de un anciano que nunca entró</div>
+      <div class="modal__actions">
+        <button class="btn" onclick="document.getElementById('modal-terminate').remove()">No, seguiré luchando</button>
+        <button class="btn btn--danger" onclick="confirmQuit()">Sí, deseo terminar</button>
+      </div>
+    </div></div>`);
+}
+
+function confirmQuit(){
+  const m = document.getElementById('modal-terminate');
+  if (m) m.remove();
+  logSep();
+  log('> terminar','cmd');
+  history.push('terminar'); histIdx = -1;
+  cmdQuit();
+}
+
+function showConfirmLoad(){
+  if (!localStorage.getItem('fortaleza_save')) {
+    log('No hay partida guardada.','error');
+    return;
+  }
+  ARMED = null; updateChipStates(); setInput('');
+  showModal(`
+    <div class="modal" id="modal-loadconf"><div class="modal__inner">
+      <h2 class="modal__title">Retornar al pasado</h2>
+      <div class="modal__text">«Dentro de la Fortaleza el tiempo no fluye como en el mundo de los hombres. Lo que has vivido puede deshacerse; lo que has ganado, perderse; los muros que has derribado pueden alzarse de nuevo, como si nunca hubieran caído.
+
+Cargar un rastro antiguo borrará de un soplo todo tu avance presente. Los muertos volverán a estar vivos, los vivos volverán a estar muertos, y tú olvidarás el camino que apenas empezabas a trazar.
+
+¿Deseas realmente regresar a ese instante ya vivido?»
+
+                                    — Advertencia grabada en la pared de la Antesala del Laberinto</div>
+      <div class="modal__actions">
+        <button class="btn" onclick="document.getElementById('modal-loadconf').remove()">No, continuaré mi camino</button>
+        <button class="btn btn--primary" onclick="document.getElementById('modal-loadconf').remove(); cmdLoad()">Sí, deseo cargar la partida</button>
+      </div>
+    </div></div>`);
+}
+
+function showMapWarning(){
+  showModal(`
+    <div class="modal" id="modal-mapwarn"><div class="modal__inner">
+      <h2 class="modal__title">Cartografía</h2>
+      <div class="modal__text">«Tenga siempre lápiz y papel a mano. Vaya llevando un diagrama donde represente los distintos lugares que visite y las relaciones entre ellos (puertas, etc.). De no seguir esta regla puede perderse en la Fortaleza hasta el punto de no encontrar la forma de pararse de la silla y apagar la máquina.»
+
+                                    — Consejos, Regla 3
+
+El mapa que está a punto de consultar es un atajo indigno de un explorador metódico. Le mostrará las puertas que usted no ha descubierto y los lugares que aún no ha visitado, arrebatándole el placer del hallazgo. Muchos han perdido su alma por menos.
+
+¿Desea verlo de todos modos?</div>
+      <div class="modal__actions">
+        <button class="btn" onclick="document.getElementById('modal-mapwarn').remove()">No, prefiero el desafío</button>
+        <button class="btn btn--primary" onclick="document.getElementById('modal-mapwarn').remove(); showMap()">Sí, mostrar el mapa</button>
+      </div>
+    </div></div>`);
+}
+
+function showMap(){
+  const rows = [];
+  for (let i = 1; i <= TOTAL_ROOMS; i++) {
+    const room = R[i];
+    if (!room) continue;
+    const isVisited = G.visited.has(i);
+    const cls = isVisited ? 'map-room map-room--visited' : 'map-room map-room--unvisited';
+    if (!isVisited) { rows.push(`<div class="${cls}">${i}. ${room.name} — (sin visitar)</div>`); continue; }
+    const links = room.objs.filter(o => DOOR_TYPES.includes(o.t));
+    const conn = links.map(l => {
+      const known = G.visited.has(l.dest);
+      const arrow = l._open ? '→' : '⇥';
+      const label = known ? R[l.dest].name : '???';
+      return `${arrow} ${l.dest} (${label})${l._open?'':' [cerrada]'}`;
+    }).join(' · ') || 'sin salidas';
+    rows.push(`<div class="${cls}"><strong>${i}. ${room.name}</strong><br><span style="color:var(--mute)">${conn}</span></div>`);
+  }
+  showModal(`
+    <div class="modal" id="modal-map"><div class="modal__inner">
+      <h2 class="modal__title">Mapa de la Fortaleza</h2>
+      <p class="modal__sub">Habitaciones visitadas: ${G.visited.size} / ${TOTAL_ROOMS}</p>
+      <div style="max-height:55vh;overflow-y:auto;background:var(--bg);padding:12px;border-radius:4px;border:1px solid var(--border)">${rows.join('')}</div>
+      <div class="modal__actions">
+        <button class="btn" onclick="document.getElementById('modal-map').remove()">Cerrar</button>
+      </div>
+    </div></div>`);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EVENTOS
+   ═══════════════════════════════════════════════════════════════ */
+function newGame(){
+  initGame();
+  clearLog();
+  log('La Fortaleza — En las entrañas de la Bestia','room');
+  log('Escriba "ayuda" o use los botones para empezar.','hint');
+  showRoom();
+}
+
+$('#cmdbar').addEventListener('submit', e => {
+  e.preventDefault();
+  if (ARMED) {
+    if (ARMED.parts.length >= 1) return executeArmed();
+    if (ARMED.verb === 'mirar') {
+      ARMED = null; updateChipStates(); setInput('');
+      execute('mirar');
+      return;
+    }
+    return;
+  }
+  const v = $('#cmd-input').value.trim();
+  if (!v) return;
+  execute(v);
+  setInput('');
+});
+
+$('#cmd-input').addEventListener('input', () => {
+  if (ARMED) { ARMED = null; updateChipStates(); }
+});
+
+document.querySelectorAll('.chip').forEach(c => {
+  c.addEventListener('click', () => armVerb(c.dataset.verb));
+});
+
+$('#room-viewport').addEventListener('click', e => {
+  if (e.target.closest('.obj')) return;
+  if (ARMED) { ARMED = null; updateChipStates(); setInput(''); }
+  execute('mirar');
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && ARMED) {
+    ARMED = null; updateChipStates(); setInput('');
+    e.preventDefault();
+  }
+});
+
+$('#btn-help').addEventListener('click', showHelp);
+$('#btn-map').addEventListener('click', showMapWarning);
+$('#btn-save').addEventListener('click', cmdSave);
+$('#btn-load').addEventListener('click', showConfirmLoad);
+$('#btn-new').addEventListener('click', () => {
+  if (confirm('¿Reiniciar partida? Se perderá el progreso.')) newGame();
+});
+
+$('#cmd-input').addEventListener('keydown', e => {
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (!history.length) return;
+    if (histIdx < 0) histIdx = history.length;
+    histIdx = Math.max(0, histIdx-1);
+    setInput(history[histIdx]);
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (histIdx < 0) return;
+    histIdx++;
+    if (histIdx >= history.length) { histIdx = -1; setInput(''); }
+    else setInput(history[histIdx]);
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   ARRANQUE
+   ═══════════════════════════════════════════════════════════════ */
+initGame();
+showIntro();
+</script>
+</body>
+</html>
