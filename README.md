@@ -12,6 +12,8 @@ El jugador es un hombre común enviado a matar a "la Bestia" dentro de una forta
 
 Abre `Fortaleza.html` en cualquier navegador moderno. No requiere servidor, instalación ni conexión a internet.
 
+O en este vinculo: <https://maikelsz.github.io/LaFortalezaDeLaBestia/Fortaleza_I.html>
+
 ```
 git clone <este-repositorio>
 cd la-fortaleza
