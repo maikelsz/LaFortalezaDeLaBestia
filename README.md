@@ -1,6 +1,6 @@
 # La Fortaleza
 
-Reconstrucción web de **La Fortaleza**, la aventura conversacional escrita en la década de 1990 por Miguel Enrique Cepero (Merchise Software, Universidad Central de Las Villas "Marta Abreu", Cuba) en lenguaje de programación Pascal para MS-DOS.
+Reconstrucción web de **La Fortaleza**, la aventura conversacional escrita en la década de 1990 por Miguel Enrique Cepero (Merchise Software, Instituto de Informática, Universidad Central de Las Villas "Marta Abreu", Cuba) en lenguaje de programación Pascal para MS-DOS.
 
 El jugador es un hombre común enviado a matar a "la Bestia" dentro de una fortaleza. Deberá explorar 50 habitaciones, resolver acertijos, enfrentarse a criaturas y destruir los cuatro Centros de la Bestia antes de poder vencerla.
 
@@ -13,15 +13,6 @@ El jugador es un hombre común enviado a matar a "la Bestia" dentro de una forta
 Abre `Fortaleza.html` en cualquier navegador moderno. No requiere servidor, instalación ni conexión a internet.
 
 O en este vinculo: <https://maikelsz.github.io/LaFortalezaDeLaBestia/Fortaleza_I.html>
-
-```
-git clone <este-repositorio>
-cd la-fortaleza
-# abre index.html con doble clic o:
-xdg-open index.html    # Linux
-open index.html        # macOS
-start index.html       # Windows
-```
 
 Todo el juego —datos, lógica, estilos y gráficos SVG— vive en **un único archivo HTML**.
 
@@ -194,14 +185,6 @@ La Fortaleza es un producto de Merchise Software. Esta reconstrucción se ofrece
 
 ---
 
-## 📄 Licencia
-
-*(Pendiente de definir. Mientras tanto, la obra original permanece bajo los derechos de su autor y Merchise Software; esta reconstrucción web se distribuye con fines educativos y de preservación.)*
-
-Si vas a redistribuir o modificar el proyecto, ponte en contacto con el autor original o con la comunidad que mantiene esta reconstrucción.
-
----
-
 ## 🤝 Contribuir
 
 1. Fork del repositorio.
@@ -245,9 +228,6 @@ Es una rareza del original que la versión web reproduce fielmente. Hay una disc
 
 **¿Por qué el porcentaje de progreso no llega a 100% como en otros juegos?**
 En el original hay un bug (`Visits / 32` con `NRooms = 33`) y se cuenta de más. La versión web actualmente usa `/50`. Hay una decisión pendiente para alinearlo (ver `docs/INFORME-CONTINUIDAD.md` §3.4).
-
-**¿Dónde consigo el código Pascal original?**
-El fuente está disponible en archivos como `FORT1.PAS`, `CASTLES.PAS`, `ADVIC.PAS`, `INSTR1.PAS`, etc., conservados por la comunidad de preservación de software en español. El reporte del guion hace referencia continua a ellos.
 
 ---
 
