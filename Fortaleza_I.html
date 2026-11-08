@@ -75,6 +75,27 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
 .cmdbar.is-error{animation:shake .2s}
 .room-svg .obj{cursor:pointer;pointer-events:bounding-box;transition:filter .2s,opacity .2s}
 .room-svg .obj:hover{filter:brightness(1.35) drop-shadow(0 0 6px currentColor)}
+.svg-tooltip{
+  position: fixed;
+  z-index: 50;
+  pointer-events: none;
+  background: rgba(18,18,31,.95);
+  border: 1px solid var(--amber);
+  color: var(--text);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: var(--ui);
+  font-size: 12px;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,.5);
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity .12s ease, transform .12s ease;
+}
+.svg-tooltip.is-visible{
+  opacity: 1;
+  transform: translateY(0);
+}
 .room-svg .obj:focus{outline:none;filter:brightness(1.4) drop-shadow(0 0 8px currentColor)}
 .map-room{padding:4px 0;border-bottom:1px dotted var(--border);font-family:var(--mono);font-size:12px}
 .map-room--visited{color:var(--text)}
@@ -161,6 +182,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
   </footer>
 </div>
 
+<div id="svg-tooltip" class="svg-tooltip"></div>
 
 <div id="modal-root"></div>
 <script>
@@ -1922,8 +1944,8 @@ const BACKGROUNDS = {
         <stop offset="1" stop-color="#3a2030" stop-opacity="0"/>
       </radialGradient>
       <radialGradient id="extFog" cx="0.5" cy="0.5" r="0.5">
-        <stop offset="0"   stop-color="#8a6878" stop-opacity="0.75"/>
-        <stop offset="0.55" stop-color="#5a3848" stop-opacity="0.45"/>
+        <stop offset="0"   stop-color="#8a6878" stop-opacity="0.30"/>
+        <stop offset="0.55" stop-color="#5a3848" stop-opacity="0.30"/>
         <stop offset="1"   stop-color="#2a1820" stop-opacity="0"/>
       </radialGradient>
       <filter id="extStone">
@@ -2397,58 +2419,61 @@ function renderSVG(){
 
   let body = '';
 
-  // 1. Puertas (contra la pared, al fondo)
+  // 1. Puertas
   doors.forEach((o, i) => {
     const pos = getPos(G.curr, o, 'door', i, doors.length);
     body += renderDoorSprite(o, pos);
   });
 
-  // 2. Ocults (contra la pared)
+  // 2. Objetos ocultos
   hiddens.forEach((o, i) => {
-    const pos = getPos(G.curr, o, 'hidden', i, hiddens.length);
+    const pos   = getPos(G.curr, o, 'hidden', i, hiddens.length);
+    const scale = pos.scale || 1;
     const spriteFn = getSprite(o);
     body += `<g class="obj" data-type="${o.t}" data-name="${o.name}"
-               transform="translate(${pos.x},${pos.y}) scale(${pos.scale||1})"
+               transform="translate(${pos.x},${pos.y}) scale(${scale})"
                style="color:#fbbf24"
                role="button" tabindex="0" aria-label="${o.name}">
                ${spriteFn()}
-               <text y="52" text-anchor="middle" fill="#fbbf24" font-size="9" font-family="Georgia,serif">${o.name}</text>
              </g>`;
   });
 
-  // 3. NPCs (sobre las puertas)
+  // 3. NPCs
   npcs.forEach((o, i) => {
-    const pos = getPos(G.curr, o, 'npc', i, npcs.length);
+    const pos   = getPos(G.curr, o, 'npc', i, npcs.length);
+    const scale = pos.scale || 1;
     const spriteFn = getSprite(o);
     const col = o.t === 'troll' ? (o._happy ? '#4ade80' : '#f0c46a') : '#f87171';
     body += `<g class="obj" data-type="${o.t}" data-name="${o.name}"
-               transform="translate(${pos.x},${pos.y}) scale(${pos.scale||1})"
+               transform="translate(${pos.x},${pos.y}) scale(${scale})"
                style="color:${col}"
                role="button" tabindex="0" aria-label="${o.name}">
                ${spriteFn()}
-               <text y="38" text-anchor="middle" fill="${col}" font-size="9" font-family="Georgia,serif">${o.name}</text>
              </g>`;
   });
 
-  // 4. Cosas (en primer plano)
+  // 4. Cosas
   things.forEach((o, i) => {
-    const pos = getPos(G.curr, o, 'thing', i, things.length);
+    const pos   = getPos(G.curr, o, 'thing', i, things.length);
+    const scale = pos.scale || 1;
     const spriteFn = getSprite(o);
     body += `<g class="obj" data-type="${o.t}" data-name="${o.name}"
-               transform="translate(${pos.x},${pos.y}) scale(${pos.scale||1})"
+               transform="translate(${pos.x},${pos.y}) scale(${scale})"
                role="button" tabindex="0" aria-label="${o.name}">
                ${spriteFn()}
-               <text y="38" text-anchor="middle" fill="#b0b0c8" font-size="9" font-family="Georgia,serif">${o.name}</text>
              </g>`;
   });
 
-const svg = `<svg class="room-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+  const svg = `<svg class="room-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
     ${getBackground(room.svg)}
     ${body}
     ${getForeground(room.svg)}
   </svg>`;
 
   $('#room-viewport').innerHTML = svg;
+
+  // Listener de click (ya existente)
+  const tooltip = $('#svg-tooltip');
   $('#room-viewport').querySelectorAll('.obj').forEach(el => {
     el.addEventListener('click', e => {
       e.stopPropagation();
@@ -2459,6 +2484,19 @@ const svg = `<svg class="room-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="
       if (DOOR_TYPES.includes(type)) execute('ir ' + obj.name);
       else if (type === 'troll')     execute('interrogar ' + obj.name);
       else                           execute('mirar ' + obj.name);
+    });
+
+    el.addEventListener('mouseenter', () => {
+      tooltip.textContent = el.dataset.name;
+      tooltip.classList.add('is-visible');
+    });
+    el.addEventListener('mousemove', e => {
+      // 14 px de separación para que el cursor no tape el texto
+      tooltip.style.left = (e.clientX + 14) + 'px';
+      tooltip.style.top  = (e.clientY + 14) + 'px';
+    });
+    el.addEventListener('mouseleave', () => {
+      tooltip.classList.remove('is-visible');
     });
   });
 }
@@ -2539,7 +2577,6 @@ function renderDoorSprite(o, pos){
             style="color:${color}"
             role="button" tabindex="0" aria-label="${o.name}">
             ${inner}
-            <text y="${H/2 + 8}" text-anchor="middle" fill="${color}" font-size="9" font-family="Georgia,serif">${o.name}</text>
           </g>`;
 }
 
@@ -2547,7 +2584,6 @@ function renderSpecialLink(o, pos, isOpen, color, darker){
   const scale = pos.scale || 1;
   const name = norm(o.name).toLowerCase();
   let inner = '';
-  let labelY = 34;
 
   if (/túnel|tunel/.test(name)) {
     inner = `
@@ -2561,7 +2597,6 @@ function renderSpecialLink(o, pos, isOpen, color, darker){
       <path d="M -45,40 L -45,-5 Q -45,-35 -20,-40 Q 0,-45 20,-40 Q 45,-35 45,-5 L 45,40"
             fill="none" stroke="#2a2018" stroke-width="2" opacity="0.6"/>
     `;
-    labelY = 58;
   } else if (/pozo/.test(name)) {
     inner = `
       <ellipse cx="0" cy="20" rx="28" ry="10" fill="#0a0505"/>
@@ -2570,7 +2605,6 @@ function renderSpecialLink(o, pos, isOpen, color, darker){
       <path d="M -30,20 L -26,-5 L 26,-5 L 30,20" fill="none" stroke="#1a1010" stroke-width="4"/>
       <path d="M -28,15 L 28,15" stroke="#2a2018" stroke-width="2"/>
     `;
-    labelY = 42;
   } else if (/garganta|tráquea|traquea|esófago|esofago|arteria/i.test(name)) {
     const isArtery = /arteria/i.test(name);
     const fillColor = isArtery ? '#8a1020' : '#6a1818';
@@ -2580,7 +2614,6 @@ function renderSpecialLink(o, pos, isOpen, color, darker){
       <ellipse cx="0" cy="0" rx="18" ry="22" fill="#000"/>
       <path d="M -20,0 Q 0,10 20,0" fill="none" stroke="#5a1010" stroke-width="1" opacity="0.5"/>
     `;
-    labelY = 50;
   } else {
     const ico = isOpen ? '▶' : '◯';
     inner = `
@@ -2594,7 +2627,6 @@ function renderSpecialLink(o, pos, isOpen, color, darker){
             style="color:${color}"
             role="button" tabindex="0" aria-label="${o.name}">
             ${inner}
-            <text y="${labelY}" text-anchor="middle" fill="${color}" font-size="9" font-family="Georgia,serif">${o.name}</text>
           </g>`;
 }
 
@@ -2602,6 +2634,9 @@ function renderSpecialLink(o, pos, isOpen, color, darker){
    PANELES
    ═══════════════════════════════════════════════════════════════ */
 function showRoom(){
+  const tip = $('#svg-tooltip');
+  if (tip) tip.classList.remove('is-visible');
+
   ARMED = null;
   updateChipStates();
   setInput('');
