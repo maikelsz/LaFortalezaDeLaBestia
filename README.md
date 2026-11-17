@@ -80,25 +80,6 @@ Puedes cancelar el modo armado con `Esc`, editando el input o pulsando el mismo 
 
 ---
 
-## 📁 Estructura del repositorio
-
-```
-la-fortaleza/
-├── index.html              ← el juego completo (CSS + JS + datos embebidos)
-├── README.md               ← este archivo
-├── docs/
-│   ├── REPORTE-GUION.md    ← catálogo de habitaciones, objetos, contraseñas y puzzles
-│   └── INFORME-CONTINUIDAD.md  ← handoff entre sesiones de trabajo
-└── (opcional)
-    ├── LICENSE
-    └── screenshots/
-        ├── habitacion.png
-        ├── inventario.png
-        └── mapa.png
-```
-
----
-
 ## 🛠️ Desarrollo
 
 ### Requisitos
