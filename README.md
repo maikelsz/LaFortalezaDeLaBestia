@@ -153,19 +153,10 @@ Abre `index.html` y verifica contra el **checklist de pruebas** en `docs/INFORME
 
 ### Fase 5 — Refinamiento (prioridad baja)
 
-- [ ] Decisión sobre el porcentaje de progreso (ver `docs/INFORME-CONTINUIDAD.md` §3.4).
+- [ ] Decisión sobre el porcentaje de progreso.
 - [ ] Decisión sobre el Troll y el Polvo Mágico (ver §3.5).
 - [ ] Modo CRT / mono opcional.
 - [ ] Modo "asistido" con guía lateral.
-
----
-
-## 📚 Documentación
-
-- **[`docs/REPORTE-GUION.md`](docs/REPORTE-GUION.md)** — catálogo completo de habitaciones, objetos, contraseñas, puzzles, esquemas SVG y warnings del original. Es la **referencia canónica** del contenido del juego.
-- **[`docs/INFORME-CONTINUIDAD.md`](docs/INFORME-CONTINUIDAD.md)** — handoff entre sesiones de trabajo: qué está hecho, qué falta, decisiones de diseño tomadas, checklist de pruebas, roadmap.
-
-Si vas a contribuir al contenido (añadir descripciones, corregir contraseñas, resolver claves pendientes), **actualiza el reporte del guion en el mismo PR**.
 
 ---
 
