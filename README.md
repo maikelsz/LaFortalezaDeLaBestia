@@ -2,7 +2,7 @@
 
 Reconstrucción web de **La Fortaleza**, la aventura conversacional escrita en la década de 1990 por Miguel Enrique Cepero (Merchise Software, Instituto de Informática, Universidad Central de Las Villas "Marta Abreu", Cuba) en lenguaje de programación Pascal para MS-DOS.
 
-El jugador es un hombre común enviado a matar a "la Bestia" dentro de una fortaleza. Deberá explorar 50 habitaciones, resolver acertijos, enfrentarse a criaturas y destruir los cuatro Centros de la Bestia antes de poder vencerla.
+El jugador es una persona común enviada a matar a "la Bestia" dentro de una fortaleza. Deberá explorar 50 habitaciones, resolver acertijos, enfrentarse a criaturas y destruir los cuatro Centros de la Bestia antes de poder vencerla.
 
 **Este es un trabajo en progreso**
 
