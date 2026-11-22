@@ -4,7 +4,7 @@ Reconstrucción web de **La Fortaleza**, la aventura conversacional escrita en l
 
 El jugador es una persona común enviada a matar a "la Bestia" dentro de una fortaleza. Deberá explorar 50 habitaciones, resolver acertijos, enfrentarse a criaturas y destruir los cuatro Centros de la Bestia antes de poder vencerla.
 
-**Este es un trabajo en progreso**
+**ATENCIÓN! Este es un trabajo en progreso**
 
 ---
 
