@@ -23,7 +23,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
 .panel__title{margin:0;font-family:var(--ui);font-size:14px;font-weight:500;color:var(--amber);letter-spacing:.3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .room-viewport{flex:1;position:relative;min-height:0;display:flex;align-items:center;justify-content:center;padding:8px;background:radial-gradient(ellipse at center,#0d0d1a,#060610);cursor:default;overflow:hidden}
 .room-svg{width:100%;height:100%;display:block}
-.room-desc{padding:10px 14px;font-size:13px;color:var(--dim);border-top:1px solid var(--border);font-style:italic;max-height:80px;overflow-y:auto}
+.room-desc{padding:12px 16px;font-size:13px;color:var(--dim);border-top:1px solid var(--border);line-height:1.5;min-height:96px;max-height:160px;overflow-y:auto;flex:0 0 auto;scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent}
+.room-desc p{margin:0}
+.room-desc__entry{color:var(--text);font-weight:600;font-style:italic;margin-bottom:4px}
+.room-desc__text{font-style:italic}
+.room-desc::-webkit-scrollbar{width:8px}.room-desc::-webkit-scrollbar-track{background:transparent}.room-desc::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:4px}
 .log{flex:1;padding:12px 16px;overflow-y:auto;font-size:14px;line-height:1.55;scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent}
 .log::-webkit-scrollbar{width:8px}.log::-webkit-scrollbar-track{background:transparent}.log::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:4px}
 .log__msg{margin:0 0 6px;white-space:pre-wrap}
@@ -41,16 +45,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
 .cmdbar__input{background:transparent;border:none;outline:none;color:var(--text);font-family:var(--mono);font-size:14px;padding:6px 0;caret-color:var(--amber);width:100%}
 .cmdbar__send{background:var(--panel);border:1px solid var(--border-hi);color:var(--dim);padding:4px 10px;border-radius:4px;cursor:pointer}
 .cmdbar__send:hover{color:var(--amber);border-color:var(--amber)}
-.quick{display:flex;flex-wrap:wrap;gap:6px;padding:6px 12px 10px;border-top:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.quick{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;border-top:1px solid var(--border);overflow-x:auto;scrollbar-width:none;flex:0 0 auto}
 .quick::-webkit-scrollbar{display:none}
 .chip{background:var(--panel-hi);border:1px solid var(--border);color:var(--dim);padding:4px 10px;border-radius:20px;font-size:12px;cursor:pointer;white-space:nowrap;font-family:var(--ui);transition:all .15s;flex-shrink:0}
 .chip:hover{color:var(--amber);border-color:var(--amber)}
 .chip.is-armed{background:var(--amber);color:#1a1200;border-color:var(--amber);font-weight:600}
-.inventory{list-style:none;margin:0;padding:8px;overflow-y:auto;flex:1}
-.inv-item{display:grid;grid-template-columns:1fr auto;gap:6px;padding:6px 8px;border-radius:4px;cursor:pointer;align-items:center;font-size:13px}
-.inv-item:hover{background:var(--panel-hi)}
-.inv-item__weight{font-size:11px;color:var(--mute);font-family:var(--mono)}
-.inv-empty{color:var(--mute);font-style:italic;padding:16px;text-align:center;font-size:13px}
+.inventory{list-style:none;margin:0;padding:8px;overflow-y:auto;flex:1;min-height:0;display:grid;grid-template-columns:1fr;gap:6px;align-content:start;scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent}
+.inventory::-webkit-scrollbar{width:8px}.inventory::-webkit-scrollbar-track{background:transparent}.inventory::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:4px}
+.inv-item{position:relative;display:flex;align-items:center;justify-content:center;height:96px;min-width:0;padding:4px;border:1px solid transparent;border-radius:5px;background:rgba(26,26,46,.55);cursor:pointer;transition:background .15s,border-color .15s,filter .15s}
+.inv-item:hover,.inv-item:focus-visible{background:var(--panel-hi);border-color:var(--amber);filter:brightness(1.25) drop-shadow(0 0 5px rgba(240,196,106,.35));outline:none}
+.inv-item__icon{width:88px;height:88px;max-width:100%;max-height:100%;display:block;pointer-events:none}
+.inv-item__weight{position:absolute;right:2px;bottom:1px;font-size:9px;line-height:1;color:var(--mute);font-family:var(--mono);background:rgba(8,8,15,.75);padding:1px 2px;border-radius:2px;pointer-events:none}
+.inv-empty{grid-column:1/-1;color:var(--mute);font-style:italic;padding:16px;text-align:center;font-size:13px}
 .weightbar{padding:10px 12px 12px;border-top:1px solid var(--border)}
 .weightbar__track{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
 .weightbar__fill{height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--amber),var(--red));background-size:300px 100%;transition:width .3s ease}
@@ -134,8 +140,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
 }
 .room-svg .lantern-glow{ animation: lantern-flicker 4.2s ease-in-out infinite; }
 
-@media(max-width:1000px){.board{grid-template-columns:3fr 1fr;grid-template-rows:45% 1fr}.panel--room{grid-column:1/-1}.panel--log{grid-column:1}.panel--side{grid-column:2}}
-@media(max-width:700px){.board{grid-template-columns:1fr;grid-template-rows:1fr;padding:0;gap:0}.panel{border-radius:0;border-left:none;border-right:none}}
+@media(max-width:1000px){.board{grid-template-columns:minmax(0,3fr) minmax(0,1fr);grid-template-rows:45% 1fr}.panel--room{grid-column:1/-1;grid-row:1}.panel--log{grid-column:1;grid-row:2}.panel--side{grid-column:2;grid-row:2}}
+@media(max-width:700px){.board{grid-template-columns:minmax(0,3fr) minmax(0,1fr);grid-template-rows:minmax(320px,54%) 1fr;padding:0;gap:0}.panel{border-radius:0;border-left:none;border-right:none}.panel--room{grid-column:1/-1;grid-row:1}.panel--log{grid-column:1;grid-row:2}.panel--side{grid-column:2;grid-row:2}.room-desc{min-height:96px;max-height:130px;font-size:12.5px;padding:10px 12px}.inventory{padding:6px;gap:5px;grid-template-columns:1fr}.inv-item{padding:3px;height:92px}.inv-item__icon{width:84px;height:84px}}
 </style>
 </head>
 <body>
@@ -153,17 +159,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
   </header>
   <main class="board">
     <section class="panel panel--room">
-      <header class="panel__head"><h2 class="panel__title" id="room-title">el exterior de la fortaleza</h2></header>
       <div class="room-viewport" id="room-viewport"></div>
       <footer class="room-desc" id="room-description"></footer>
-    </section>
-    <section class="panel panel--log">
-      <div class="log" id="log" role="log" aria-live="polite"></div>
-      <form class="cmdbar" id="cmdbar">
-        <span class="cmdbar__prompt">&gt;</span>
-        <input class="cmdbar__input" id="cmd-input" type="text" autocomplete="off" spellcheck="false" autofocus aria-label="Comando">
-        <button class="cmdbar__send" type="submit" title="Ejecutar">↵</button>
-      </form>
       <div class="quick" id="quick-actions">
         <button class="chip" data-verb="mirar">mirar</button>
         <button class="chip" data-verb="ir">ir</button>
@@ -179,6 +176,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
         <button class="chip" data-verb="terminar">terminar</button>
         <button class="chip" data-verb="ayuda">ayuda</button>
       </div>
+    </section>
+    <section class="panel panel--log">
+      <div class="log" id="log" role="log" aria-live="polite"></div>
+      <form class="cmdbar" id="cmdbar">
+        <span class="cmdbar__prompt">&gt;</span>
+        <input class="cmdbar__input" id="cmd-input" type="text" autocomplete="off" spellcheck="false" autofocus aria-label="Comando">
+        <button class="cmdbar__send" type="submit" title="Ejecutar">↵</button>
+      </form>
     </section>
     <aside class="panel panel--side">
       <header class="panel__head"><h2 class="panel__title">Pertenencias</h2></header>
@@ -817,15 +822,19 @@ function cmdTake(rest){
     return;
   }
   R[G.curr].objs.splice(R[G.curr].objs.indexOf(obj),1);
+  delete obj._dropPos;
   G.bag.push(obj);
   log('Ok.','success');
   renderInventory(); renderSVG();
 }
 
 function cmdDrop(rest){
+  const room = R[G.curr];
   if (norm(rest)==='TODO') {
     if (!G.bag.length) { log('Usted no lleva nada consigo.','error'); return; }
-    while (G.bag.length) R[G.curr].objs.push(G.bag.pop());
+    const dropped = G.bag.splice(0);
+    placeDroppedObjects(dropped);
+    room.objs.push(...dropped);
     log('Usted deja todas sus pertenencias en el suelo.','success');
     renderInventory(); renderSVG();
     return;
@@ -833,7 +842,8 @@ function cmdDrop(rest){
   const obj = findInBag(rest);
   if (!obj) { log(rest ? `«${rest}» no está dentro de sus pertenencias.` : 'Complete la oración. No sea ambiguo.','error'); return; }
   G.bag.splice(G.bag.indexOf(obj),1);
-  R[G.curr].objs.push(obj);
+  placeDroppedObjects([obj]);
+  room.objs.push(obj);
   log('Ok.','success');
   renderInventory(); renderSVG();
 }
@@ -13456,9 +13466,171 @@ function autoPos(cat, idx, total){
 }
 
 function getPos(roomId, obj, cat, idx, total){
+  if (obj._dropPos) return obj._dropPos;
   const override = POSITIONS[roomId] && POSITIONS[roomId][obj.id];
   if (override) return override;
   return autoPos(cat, idx, total);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COLOCACIÓN DE OBJETOS DEJADOS EN EL SUELO
+   ───────────────────────────────────────────────────────────────
+   Cada objeto recibe una posición propia (_dropPos) calculada a partir
+   de su caja real: el borde inferior apoya en la línea del suelo de la
+   sala y la caja no se solapa con la de ningún otro objeto presente.
+   ═══════════════════════════════════════════════════════════════ */
+const DROP_FLOOR_Y = {
+  1: 540, 2: 520, 3: 520, 4: 520, 5: 525, 6: 520,
+  12: 540, 13: 520, 14: 520, 15: 520, 16: 520,
+  23: 520, 27: 535
+};
+const DROP_FLOOR_DEFAULT = 525;
+const DROP_MAX_DIM = 170;
+const DROP_MAX_BOTTOM = 594;
+const DROP_MIN_TOP = 36;
+const DROP_X_MIN = 24;
+const DROP_X_MAX = 876;
+
+function dropFloorY(roomId){
+  return DROP_FLOOR_Y[roomId] || DROP_FLOOR_DEFAULT;
+}
+
+/* Rectángulo en unidades del viewBox (0…900 × 0…600) de cada objeto
+   actualmente dibujado en la sala. */
+function getRoomObjectRects(){
+  const svg = document.querySelector('#room-viewport svg');
+  if (!svg) return [];
+  const screen = svg.getScreenCTM();
+  if (!screen) return [];
+  const inv = screen.inverse();
+  const pt = svg.createSVGPoint();
+  const toView = (x, y) => {
+    pt.x = x; pt.y = y;
+    const p = pt.matrixTransform(inv);
+    return { x: p.x, y: p.y };
+  };
+  const rects = [];
+  svg.querySelectorAll('.obj').forEach(el => {
+    const r = el.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    const a = toView(r.left, r.top);
+    const b = toView(r.right, r.bottom);
+    rects.push({
+      l: Math.min(a.x, b.x), t: Math.min(a.y, b.y),
+      r: Math.max(a.x, b.x), b: Math.max(a.y, b.y)
+    });
+  });
+  return rects;
+}
+
+function rectsOverlap(a, b, pad){
+  return a.l < b.r + pad && a.r > b.l - pad &&
+         a.t < b.b + pad && a.b > b.t - pad;
+}
+
+function dropRect(bb, scale, cx, bottom){
+  const l = cx - (bb.w * scale) / 2;
+  return {
+    l,
+    t: bottom - bb.h * scale,
+    r: l + bb.w * scale,
+    b: bottom,
+    x: cx - (bb.x + bb.w / 2) * scale,
+    y: bottom - (bb.y + bb.h) * scale,
+    scale
+  };
+}
+
+function findDropSpot(bb, scale, occupied, floorY, pad){
+  const w = bb.w * scale;
+  if (w > DROP_X_MAX - DROP_X_MIN) return null;
+  const cxMin = DROP_X_MIN + w / 2;
+  const cxMax = DROP_X_MAX - w / 2;
+  if (cxMin > cxMax) return null;
+
+  const candidatesX = [];
+  const step = Math.max(4, Math.min(12, w * 0.5));
+  for (let cx = cxMin; cx <= cxMax + 0.01; cx += step) candidatesX.push(cx);
+  if (!candidatesX.length || candidatesX[candidatesX.length - 1] < cxMax - 0.01) candidatesX.push(cxMax);
+  candidatesX.sort((a, b) => Math.abs(a - 450) - Math.abs(b - 450));
+
+  const maxOff = Math.max(0, DROP_MAX_BOTTOM - floorY);
+  for (let off = 0; off <= maxOff + 0.01; off += 12) {
+    for (const cx of candidatesX) {
+      const r = dropRect(bb, scale, cx, floorY + off);
+      if (r.t < DROP_MIN_TOP) continue;
+      if (r.b > DROP_MAX_BOTTOM) continue;
+      if (occupied.some(q => rectsOverlap(r, q, pad))) continue;
+      return r;
+    }
+  }
+  return null;
+}
+
+function placeDroppedObjects(list){
+  if (!list || !list.length) return;
+  const floorY = dropFloorY(G.curr);
+  const roomRects = getRoomObjectRects();
+  const entries = list.map(obj => {
+    const bb = spriteBBox(getSprite(obj));
+    const maxDim = Math.max(bb.w, bb.h, 1);
+    return { obj, bb, base: Math.min(1.2, DROP_MAX_DIM / maxDim) };
+  });
+
+  // Se intenta colocar el lote entero a escala completa; si no cabe, se
+  // reduce la escala de todo el conjunto y se reintenta. Así dos objetos
+  // dejados a la vez nunca comparten el mismo hueco.
+  const factors = [1, 0.86, 0.74, 0.63, 0.53, 0.44, 0.36, 0.3, 0.25, 0.21, 0.17, 0.14];
+  for (const pad of [8, 4, 2]) {
+    for (const factor of factors) {
+      const placed = [];
+      let ok = true;
+      for (const e of entries) {
+        const sc = Math.max(0.1, e.base * factor);
+        const spot = findDropSpot(e.bb, sc, roomRects.concat(placed), floorY, pad);
+        if (!spot) { ok = false; break; }
+        placed.push(spot);
+      }
+      if (ok) {
+        entries.forEach((e, i) => {
+          const r = placed[i];
+          e.obj._dropPos = { x: r.x, y: r.y, scale: r.scale };
+        });
+        return;
+      }
+    }
+  }
+
+  // Caso extremo: seguir reduciendo hasta que quepan todos.
+  for (let factor = 0.11; factor >= 0.04; factor -= 0.01) {
+    const placed = [];
+    let ok = true;
+    for (const e of entries) {
+      const sc = Math.max(0.06, e.base * factor);
+      const spot = findDropSpot(e.bb, sc, roomRects.concat(placed), floorY, 1);
+      if (!spot) { ok = false; break; }
+      placed.push(spot);
+    }
+    if (ok) {
+      entries.forEach((e, i) => {
+        const r = placed[i];
+        e.obj._dropPos = { x: r.x, y: r.y, scale: r.scale };
+      });
+      return;
+    }
+  }
+
+  // Último recurso defensivo: reparto en fila sobre la línea del suelo.
+  const perRow = Math.max(1, Math.ceil(Math.sqrt(entries.length * 1.6)));
+  entries.forEach((e, i) => {
+    const col = i % perRow;
+    const row = Math.floor(i / perRow);
+    const sc = Math.max(0.06, e.base * 0.12);
+    const cx = DROP_X_MIN + 30 + col * ((DROP_X_MAX - DROP_X_MIN - 60) / Math.max(1, perRow - 1));
+    const bottom = floorY + Math.min(DROP_MAX_BOTTOM - floorY, row * 12);
+    const r = dropRect(e.bb, sc, cx, bottom);
+    e.obj._dropPos = { x: r.x, y: r.y, scale: sc };
+  });
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -13528,6 +13700,8 @@ const HANGING_OBJ = new Set(['arana','centro','pulmones','estomago','corazon21',
 
 function hasGroundShadow(o, pos){
   if (DOOR_TYPES.includes(o.t)) return false;
+  // Un objeto dejado por el jugador siempre apoya en el suelo.
+  if (o._dropPos) return true;
   // Una entrada explícita manda: hay espejos y tablillas que se apoyan en el
   // suelo aunque su id caiga en WALL_OBJ_RE por el sprite por defecto.
   if (OBJ_SHADOWS[o.id]) return true;
@@ -13537,10 +13711,23 @@ function hasGroundShadow(o, pos){
 }
 
 function renderGroundShadow(o, pos){
-  const s = OBJ_SHADOWS[o.id] || OBJ_SHADOW_DEFAULT;
+  let s = OBJ_SHADOWS[o.id];
+  let cx = 0;
+  if (o._dropPos) {
+    const bb = spriteBBox(getSprite(o));
+    s = {
+      y: bb.y + bb.h - 1,
+      rx: Math.max(10, bb.w * 0.36),
+      ry: Math.max(2.4, bb.w * 0.055),
+      op: 0.28
+    };
+    cx = bb.x + bb.w / 2;
+  } else if (!s) {
+    s = OBJ_SHADOW_DEFAULT;
+  }
   const scale = pos.scale || 1;
   return `<g pointer-events="none" transform="translate(${pos.x},${pos.y}) scale(${scale})">
-    <ellipse cx="0" cy="${s.y}" rx="${s.rx}" ry="${s.ry}" fill="url(#objShadowGrad)" opacity="${s.op}"/>
+    <ellipse cx="${cx}" cy="${s.y}" rx="${s.rx}" ry="${s.ry}" fill="url(#objShadowGrad)" opacity="${s.op}"/>
   </g>`;
 }
 
@@ -15180,12 +15367,69 @@ function showRoom(){
   setInput('');
   const room = R[G.curr];
   $('#location-name').textContent = room.name;
-  $('#room-title').textContent = room.name;
-  $('#room-description').textContent = room.desc;
+  const desc = $('#room-description');
+  desc.replaceChildren();
+  const entry = document.createElement('p');
+  entry.className = 'room-desc__entry';
+  entry.textContent = `Usted se encuentra en ${room.name}.`;
+  const body = document.createElement('p');
+  body.className = 'room-desc__text';
+  body.textContent = room.desc;
+  desc.append(entry, body);
   renderSVG();
   renderInventory();
   updateStatus();
   cmdLook();
+}
+
+/* Icono SVG del inventario: reutiliza el sprite de la escena, acotado a su
+   caja real y con los id locales aislados para no colisionar entre iconos. */
+const SPRITE_BBOX = new WeakMap();
+
+function spriteBBox(spriteFn){
+  if (typeof spriteFn !== 'function') return { x: -16, y: -16, w: 32, h: 32 };
+  const cached = SPRITE_BBOX.get(spriteFn);
+  if (cached) return cached;
+
+  let markup = '';
+  try { markup = spriteFn(); } catch (e) { markup = ''; }
+  const host = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  host.setAttribute('width', '120');
+  host.setAttribute('height', '120');
+  host.style.cssText = 'position:fixed;left:-10000px;top:0;width:120px;height:120px;overflow:hidden;visibility:hidden;pointer-events:none';
+  host.innerHTML = `<g>${markup}</g>`;
+  document.body.appendChild(host);
+
+  let bb = null;
+  try {
+    const b = host.firstElementChild.getBBox();
+    bb = { x: b.x, y: b.y, w: b.width, h: b.height };
+  } catch (e) { bb = null; }
+  host.remove();
+
+  if (!bb || !isFinite(bb.x) || !isFinite(bb.y) || !isFinite(bb.w) || !isFinite(bb.h) || bb.w <= 0 || bb.h <= 0) {
+    bb = { x: -16, y: -16, w: 32, h: 32 };
+  }
+  SPRITE_BBOX.set(spriteFn, bb);
+  return bb;
+}
+
+function inventoryIconSVG(o, idx){
+  const spriteFn = getSprite(o);
+  let markup = spriteFn ? spriteFn() : '';
+  const localIds = new Set();
+  markup.replace(/\bid="([^"]+)"/g, (_, id) => { localIds.add(id); return ''; });
+  const prefix = `inv${idx}_`;
+  markup = markup
+    .replace(/\bid="([^"]+)"/g, (_, id) => `id="${prefix}${id}"`)
+    .replace(/url\(#([^)]+)\)/g, (m, id) => localIds.has(id) ? `url(#${prefix}${id})` : m)
+    .replace(/((?:xlink:)?href)="#([^"]+)"/g, (m, attr, id) => localIds.has(id) ? `${attr}="#${prefix}${id}"` : m)
+    .replace(/<animate(?:Transform|Motion)?\b[^>]*\/>/g, '');
+
+  const bb = spriteBBox(spriteFn);
+  const pad = Math.max(2, Math.max(bb.w, bb.h) * 0.08);
+  const viewBox = `${(bb.x - pad).toFixed(1)} ${(bb.y - pad).toFixed(1)} ${(bb.w + pad * 2).toFixed(1)} ${(bb.h + pad * 2).toFixed(1)}`;
+  return `<svg class="inv-item__icon" viewBox="${viewBox}" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">${markup}</svg>`;
 }
 
 function renderInventory(){
@@ -15193,17 +15437,42 @@ function renderInventory(){
   if (!G.bag.length) {
     ul.innerHTML = '<li class="inv-empty">Vacío</li>';
   } else {
-    ul.innerHTML = G.bag.map(o =>
-      `<li class="inv-item" data-name="${o.name}">
-         <span>${o.name}</span>
+    ul.innerHTML = G.bag.map((o, i) =>
+      `<li class="inv-item" role="button" tabindex="0">
+         ${inventoryIconSVG(o, i)}
          <span class="inv-item__weight">${o.w||0}</span>
        </li>`).join('');
-    ul.querySelectorAll('.inv-item').forEach(li => {
-      li.addEventListener('click', () => {
-        const obj = findInBag(li.dataset.name);
-        if (!obj) return;
+    const tooltip = $('#svg-tooltip');
+    ul.querySelectorAll('.inv-item').forEach((li, i) => {
+      const obj = G.bag[i];
+      li.setAttribute('aria-label', obj.name);
+      const moveTip = e => {
+        tooltip.style.left = (e.clientX + 14) + 'px';
+        tooltip.style.top  = (e.clientY + 14) + 'px';
+      };
+      li.addEventListener('mouseenter', e => {
+        tooltip.textContent = obj.name;
+        tooltip.classList.add('is-visible');
+        moveTip(e);
+      });
+      li.addEventListener('mousemove', moveTip);
+      li.addEventListener('mouseleave', () => tooltip.classList.remove('is-visible'));
+      li.addEventListener('focus', () => {
+        const r = li.getBoundingClientRect();
+        tooltip.textContent = obj.name;
+        tooltip.classList.add('is-visible');
+        tooltip.style.left = r.left + 'px';
+        tooltip.style.top  = (r.bottom + 8) + 'px';
+      });
+      li.addEventListener('blur', () => tooltip.classList.remove('is-visible'));
+      const activate = () => {
+        if (!G.bag.includes(obj)) return;
         if (ARMED) { clickObject(obj, 'bag'); return; }
         execute('mirar ' + obj.name);
+      };
+      li.addEventListener('click', activate);
+      li.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); }
       });
     });
   }
