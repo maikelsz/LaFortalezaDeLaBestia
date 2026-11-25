@@ -325,7 +325,7 @@ const ROOMS = {
   L('puerta6','Puerta','Es una puerta para gigantes.','Bombus Rostomellaris',7,'Usted se encuentra del otro lado de la puerta.')
 ]},
 
-7:{name:'Pasillo',desc:'Tiene tres puertas al lado y una al final.',svg:'interior',objs:[
+7:{name:'Pasillo',desc:'Tiene tres puertas al lado y una al final.',svg:'pasillo',objs:[
   T('antorcha','Antorcha','La llama parece bailar en su propia luz.',1),
   L('puerta7','Puerta','Es una puerta para gigantes.','Bombus Rostomellaris',6,'Usted se encuentra del otro lado de la puerta.'),
   L('p_vieja7','Puerta vieja','Es la puerta de las habitaciones de una bruja.','',8,'Usted ha entrado.'),
@@ -501,7 +501,7 @@ const ROOMS = {
   DL2('puerta27','Puerta de bronce','Conduce a la antesala del Laberinto.','','Espada',28,'Usted atraviesa la puerta.')
 ]},
 
-28:{name:'la Antesala del Laberinto',desc:'Es una habitación muy confortable, pero usted siente algo malvado flotando en el aire.',svg:'interior',objs:[
+28:{name:'la Antesala del Laberinto',desc:'Es una habitación muy confortable, pero usted siente algo malvado flotando en el aire.',svg:'antesala',objs:[
   L('p28','Puerta','Conduce al puente.','',27,'Usted atraviesa la puerta.'),
   TR('crunch','Crunch','Es muy similar a una boca con patas.','Pastel de cerezas',
      'El 12 te guiará en el Laberinto. Luego solo debes dar un paso.',
@@ -1233,6 +1233,29 @@ function animatedFlame(x, y, s, dur, hot, outer) {
         <animate attributeName="opacity" values="0.45;1;0.55;0.9;0.45" dur="${(d * 0.5).toFixed(2)}s" repeatCount="indefinite"/>
       </circle>
     </g>
+  </g>`;
+}
+
+/* Destello de punta de la Columna de Cristal (hab. 28): estrella de cuatro
+   rayos que aparece con intervalos irregulares de 5-20 s entre destellos. */
+function col28Spark(x, y, r, phase) {
+  const dur = 90;
+  const starts = [5, 17, 35, 44, 64, 78];
+  const vals = ['0'];
+  const keys = ['0'];
+  for (const t of starts) {
+    for (const [dt, v] of [[0, '0'], [0.1, '1'], [0.32, '0.85'], [0.62, '0.25'], [0.85, '0']]) {
+      keys.push(((t + dt) / dur).toFixed(6).replace(/0+$/, '').replace(/\.$/, ''));
+      vals.push(v);
+    }
+  }
+  keys.push('1');
+  vals.push('0');
+  return `<g transform="translate(${x},${y})" opacity="0">
+    <animate attributeName="opacity" values="${vals.join(';')}" keyTimes="${keys.join(';')}" dur="${dur}s" begin="-${phase}s" repeatCount="indefinite"/>
+    <circle r="${(r * 1.9).toFixed(2)}" fill="url(#col28Spark)"/>
+    <path d="M 0,${-r} L ${(r * 0.18).toFixed(2)},${(-r * 0.18).toFixed(2)} L ${r},0 L ${(r * 0.18).toFixed(2)},${(r * 0.18).toFixed(2)} L 0,${r} L ${(-r * 0.18).toFixed(2)},${(r * 0.18).toFixed(2)} L ${-r},0 L ${(-r * 0.18).toFixed(2)},${(-r * 0.18).toFixed(2)} Z" fill="#f6fffd"/>
+    <circle r="${(r * 0.26).toFixed(2)}" fill="#ffffff"/>
   </g>`;
 }
 
@@ -2527,12 +2550,95 @@ roble: () => `
           fill="none" stroke="#8a7a9a" stroke-width="0.7" opacity="0.22"/>
   `,
   columna: () => `
-    <rect x="-12" y="-32" width="24" height="64" fill="#3a5a7a" stroke="#6a8aaa" stroke-width="1.8" stroke-dasharray="4,3" opacity="0.9"/>
-    <rect x="-12" y="-32" width="24" height="64" fill="none" stroke="#8aaac0" stroke-width="0.6" opacity="0.5"/>
-    <line x1="-7" y1="-28" x2="-7" y2="28" stroke="#a0c0d0" stroke-width="0.6" opacity="0.5"/>
-    <line x1="7" y1="-28" x2="7" y2="28" stroke="#a0c0d0" stroke-width="0.6" opacity="0.5"/>
-    <circle cx="0" cy="-24" r="2.5" fill="#e0e8f0" opacity="0.6"/>
-    <circle cx="0" cy="-14" r="1.5" fill="#e0e8f0" opacity="0.4"/>
+    <defs>
+      <linearGradient id="col28Shaft" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0"    stop-color="#0a1e24"/>
+        <stop offset="0.16" stop-color="#2a606a"/>
+        <stop offset="0.40" stop-color="#a8e2dc" stop-opacity="0.92"/>
+        <stop offset="0.56" stop-color="#5c9ea6"/>
+        <stop offset="0.78" stop-color="#1a4852"/>
+        <stop offset="1"    stop-color="#07171c"/>
+      </linearGradient>
+      <linearGradient id="col28Crown" x1="0.2" y1="0" x2="0.8" y2="1">
+        <stop offset="0"    stop-color="#d8f8f2"/>
+        <stop offset="0.35" stop-color="#72b8bc"/>
+        <stop offset="0.72" stop-color="#285a66"/>
+        <stop offset="1"    stop-color="#0a2228"/>
+      </linearGradient>
+      <radialGradient id="col28Glow" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0"    stop-color="#a8f0ec" stop-opacity="0.30"/>
+        <stop offset="0.42" stop-color="#5aa8b2" stop-opacity="0.14"/>
+        <stop offset="0.78" stop-color="#2a5c68" stop-opacity="0.05"/>
+        <stop offset="1"    stop-color="#0a2028" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="col28Stone" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#46585a"/>
+        <stop offset="1" stop-color="#141e22"/>
+      </linearGradient>
+      <radialGradient id="col28Spark" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0"    stop-color="#ffffff" stop-opacity="0.95"/>
+        <stop offset="0.32" stop-color="#c8fff8" stop-opacity="0.55"/>
+        <stop offset="0.68" stop-color="#7ae0dc" stop-opacity="0.16"/>
+        <stop offset="1"    stop-color="#7ae0dc" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <ellipse cx="0" cy="-164" rx="58" ry="158" fill="url(#col28Glow)" opacity="0.9"/>
+    <ellipse cx="0" cy="-1" rx="40" ry="6" fill="#02090c" opacity="0.55"/>
+    <!-- basa escalonada, piedra fria con labio de metal -->
+    <polygon points="-45,0 45,0 36,-12 -36,-12" fill="#1b272a" stroke="#050c0f" stroke-width="1.1"/>
+    <polygon points="-36,-12 36,-12 28,-23 -28,-23" fill="url(#col28Stone)" stroke="#050c0f" stroke-width="1"/>
+    <polygon points="-36,-12 36,-12 32,-15 -32,-15" fill="#7a9a96" opacity="0.16"/>
+    <polygon points="-28,-23 28,-23 23,-32 -23,-32" fill="#334446" stroke="#050c0f" stroke-width="1"/>
+    <polygon points="-28,-23 28,-23 25,-26 -25,-26" fill="#8ab4ae" opacity="0.22"/>
+    <rect x="-24" y="-37" width="48" height="6" rx="1.4" fill="#4a5c54" stroke="#0a1210" stroke-width="0.8"/>
+    <rect x="-24" y="-36.4" width="48" height="1.3" fill="#a8c0a8" opacity="0.28"/>
+    <!-- fuste de cristal, facetado y translucido -->
+    <polygon points="-20,-36 -16,-244 16,-244 20,-36" fill="url(#col28Shaft)" fill-opacity="0.92" stroke="#071a20" stroke-width="1"/>
+    <polygon points="-20,-36 -16,-244 -8,-244 -11,-36" fill="#0d2a32" opacity="0.46"/>
+    <polygon points="9,-36 8,-244 16,-244 20,-36" fill="#061b22" opacity="0.5"/>
+    <polygon points="-5,-38 -2,-242 2,-242 5,-38" fill="#e0fffa" opacity="0.22"/>
+    <g fill="none" stroke-linecap="round">
+      <path d="M -12,-44 L -10,-238" stroke="#c8f6ef" stroke-width="1.2" opacity="0.55"/>
+      <path d="M -9,-46 L -8,-232" stroke="#e8fffa" stroke-width="0.4" opacity="0.4"/>
+      <path d="M 7,-42 L 6,-240" stroke="#9ad8d6" stroke-width="0.7" opacity="0.42"/>
+      <path d="M 13,-50 L 12,-232" stroke="#d8f8f2" stroke-width="0.35" opacity="0.3"/>
+      <path d="M -14,-72 L -11,-78 L -13,-88 L -8,-96" stroke="#eafffa" stroke-width="0.6" opacity="0.4"/>
+      <path d="M 9,-146 L 12,-152 L 10,-162 L 14,-170" stroke="#eafffa" stroke-width="0.55" opacity="0.34"/>
+      <path d="M -9,-196 L -6,-202 L -8,-212" stroke="#d0f8f4" stroke-width="0.5" opacity="0.36"/>
+    </g>
+    <g fill="#d8fbf7">
+      <circle cx="-6" cy="-64" r="0.7" opacity="0.5"/>
+      <circle cx="3" cy="-112" r="0.5" opacity="0.42"/>
+      <circle cx="-9" cy="-158" r="0.6" opacity="0.38"/>
+      <circle cx="6" cy="-218" r="0.5" opacity="0.34"/>
+    </g>
+    <!-- capitel de piedra y corona de astillas de cristal -->
+    <rect x="-20" y="-252" width="40" height="9" rx="1.2" fill="url(#col28Stone)" stroke="#050c0f" stroke-width="0.9"/>
+    <rect x="-20" y="-251.4" width="40" height="1.6" fill="#9ec0b8" opacity="0.3"/>
+    <g stroke="#082027" stroke-width="0.8">
+      <polygon points="-20,-252 -4,-252 -8,-278" fill="url(#col28Crown)"/>
+      <polygon points="-8,-252 8,-252 0,-296" fill="url(#col28Crown)"/>
+      <polygon points="4,-252 20,-252 8,-276" fill="url(#col28Crown)"/>
+    </g>
+    <polygon points="-8,-252 0,-296 -2,-252" fill="#e8fffa" opacity="0.3"/>
+    <polygon points="8,-252 0,-296 3,-252" fill="#061c24" opacity="0.5"/>
+    <polygon points="-20,-252 -8,-278 -11,-252" fill="#061c24" opacity="0.42"/>
+    <path d="M 0,-260 L 0,-294" stroke="#f2fffc" stroke-width="0.6" opacity="0.6"/>
+    <path d="M -15,-252 L -9,-270 M 15,-252 L 9,-268" fill="none" stroke="#d8fbf6" stroke-width="0.4" opacity="0.42"/>
+    <g fill="#f0fffc">
+      <circle cx="0" cy="-292" r="1.5" opacity="0.9">
+        <animate attributeName="opacity" values="0.4;1;0.5;0.9;0.4" dur="3.6s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="-11" cy="-118" r="1.1" opacity="0.6">
+        <animate attributeName="opacity" values="0.15;0.8;0.2;0.6;0.15" dur="5.2s" begin="-2.1s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="8" cy="-192" r="0.9" opacity="0.42"/>
+      <circle cx="-3" cy="-86" r="0.8" opacity="0.38"/>
+    </g>
+    <!-- destellos en las tres puntas: intervalos irregulares de 5-20 s -->
+    ${col28Spark(-8, -279, 6.4, 7)}
+    ${col28Spark(0, -297.5, 7.2, 31)}
+    ${col28Spark(8, -277, 6, 58)}
   `,
   p_madera28: () => `
     <rect x="-20" y="-30" width="40" height="60" fill="#4a2a10" stroke="#7a4a20" stroke-width="2" stroke-dasharray="4,3"/>
@@ -2961,36 +3067,409 @@ roble: () => `
     <path d="M -9,-20 Q -5,-26 0,-24" fill="none" stroke="#8a7aa2" stroke-width="0.5" opacity="0.25"/>
   `,
   crunch: () => `
-    <ellipse cx="0" cy="0" rx="22" ry="14" fill="#7a1840" stroke="#3a0818" stroke-width="1.5"/>
-    <path d="M -18 0 L 18 0" stroke="#000" stroke-width="1.5"/>
-    <g fill="#e8d8c8" stroke="#5a3010" stroke-width="0.4">
-      <polygon points="-16,-3 -13,-8 -10,-3"/>
-      <polygon points="-9,-3 -6,-8 -3,-3"/>
-      <polygon points="-2,-3 1,-8 4,-3"/>
-      <polygon points="5,-3 8,-8 11,-3"/>
-      <polygon points="12,-3 15,-8 18,-3"/>
-      <polygon points="-16,3 -13,8 -10,3"/>
-      <polygon points="-9,3 -6,8 -3,3"/>
-      <polygon points="-2,3 1,8 4,3"/>
-      <polygon points="5,3 8,8 11,3"/>
-      <polygon points="12,3 15,8 18,3"/>
+    <defs>
+      <linearGradient id="cr28Lip" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0"    stop-color="#8a3450"/>
+        <stop offset="0.35" stop-color="#6a1c38"/>
+        <stop offset="0.78" stop-color="#42101f"/>
+        <stop offset="1"    stop-color="#240812"/>
+      </linearGradient>
+      <radialGradient id="cr28Inner" cx="0.5" cy="0.38" r="0.68">
+        <stop offset="0"    stop-color="#0a0105"/>
+        <stop offset="0.55" stop-color="#2a0412"/>
+        <stop offset="1"    stop-color="#5a1428"/>
+      </radialGradient>
+      <linearGradient id="cr28Tooth" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0"    stop-color="#f2e6c8"/>
+        <stop offset="0.55" stop-color="#d6c098"/>
+        <stop offset="1"    stop-color="#9a8058"/>
+      </linearGradient>
+      <linearGradient id="cr28Tongue" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0"    stop-color="#c86080"/>
+        <stop offset="0.55" stop-color="#b04a68"/>
+        <stop offset="1"    stop-color="#8a2c4a"/>
+      </linearGradient>
+      <linearGradient id="cr28Skin" x1="0" y1="0" x2="0.3" y2="1">
+        <stop offset="0"    stop-color="#8a6e6a"/>
+        <stop offset="0.5"  stop-color="#6c5252"/>
+        <stop offset="1"    stop-color="#4a3434"/>
+      </linearGradient>
+      <clipPath id="cr28Mouth">
+        <path d="M -29,-41 Q -34,-36 -27,-31 Q -14,-26 0,-26 Q 14,-26 27,-31 Q 34,-36 29,-41 Q 14,-46 0,-46 Q -14,-46 -29,-41 Z"/>
+      </clipPath>
+    </defs>
+    <!-- Crunch: troll rechoncho y pálido que es casi todo boca. -->
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="0,0;0,-1.2;0,0" dur="3.2s" repeatCount="indefinite"/>
+
+      <!-- orejas desgarradas -->
+      <path d="M -35,-49 Q -45,-53 -44,-44 Q -42,-38 -35,-41 Z" fill="url(#cr28Skin)" stroke="#241212" stroke-width="1"/>
+      <path d="M 35,-49 Q 45,-53 44,-44 Q 42,-38 35,-41 Z" fill="url(#cr28Skin)" stroke="#241212" stroke-width="1"/>
+      <path d="M -39,-47 Q -37,-45 -35.6,-46" fill="none" stroke="#3a2222" stroke-width="0.7"/>
+      <path d="M 38,-47 L 40.6,-45 L 39,-43" fill="none" stroke="#3a2222" stroke-width="0.7"/>
+
+      <!-- piernas cortas y pies con garras -->
+      <path d="M -27,-17 Q -35,-13 -34,-2 L -30,0 L -13,0 Q -12,-8 -15,-15 Z" fill="url(#cr28Skin)" stroke="#241212" stroke-width="1.1"/>
+      <path d="M 27,-17 Q 35,-13 34,-2 L 30,0 L 13,0 Q 12,-8 15,-15 Z" fill="url(#cr28Skin)" stroke="#241212" stroke-width="1.1"/>
+      <path d="M -31,-4 Q -25,-6 -18,-3 M 31,-4 Q 25,-6 18,-3" fill="none" stroke="#a88880" stroke-width="0.5" opacity="0.35"/>
+      <g stroke="#d8c8a0" stroke-width="1" stroke-linecap="round">
+        <path d="M -34,-1 L -38,0.4 M -30,-1 L -31,1.4 M -25,-1 L -24,1.4"/>
+        <path d="M 34,-1 L 38,0.4 M 30,-1 L 31,1.4 M 25,-1 L 24,1.4"/>
+      </g>
+
+      <!-- barriga baja -->
+      <path d="M -25,-30 Q -31,-20 -27,-8 Q -15,-2 0,-3 Q 15,-2 27,-8 Q 31,-20 25,-30 Z" fill="url(#cr28Skin)" stroke="#241212" stroke-width="1.2"/>
+      <ellipse cx="0" cy="-14" rx="16" ry="9" fill="#8a706c" opacity="0.5"/>
+      <path d="M -4,-11 Q 0,-9 4,-11" fill="none" stroke="#3a2424" stroke-width="0.8"/>
+      <path d="M -14,-22 Q -8,-25 -2,-23 M 10,-9 Q 15,-11 19,-9" fill="none" stroke="#3a2424" stroke-width="0.6" opacity="0.5"/>
+
+      <!-- brazos cortos, manos sobre las rodillas -->
+      <path d="M -25,-35 Q -36,-30 -35,-18 Q -34,-13 -29,-12 Q -24,-16 -24,-23 Q -23,-29 -20,-33 Z" fill="url(#cr28Skin)" stroke="#241212" stroke-width="1.1"/>
+      <path d="M 25,-35 Q 36,-30 35,-18 Q 34,-13 29,-12 Q 24,-16 24,-23 Q 23,-29 20,-33 Z" fill="url(#cr28Skin)" stroke="#241212" stroke-width="1.1"/>
+      <g transform="translate(-30,-12)">
+        <path d="M -6,0 Q -8,-4 -4,-6 Q 2,-7 6,-3 Q 8,0 4,3 L -3,3 Z" fill="#7a605c" stroke="#241212" stroke-width="0.8"/>
+        <path d="M -5,2 L -7,5 M 0,3 L 0,6 M 4,3 L 6,5" stroke="#c8b898" stroke-width="0.9" stroke-linecap="round"/>
+      </g>
+      <g transform="translate(30,-12)">
+        <path d="M 6,0 Q 8,-4 4,-6 Q -2,-7 -6,-3 Q -8,0 -4,3 L 3,3 Z" fill="#7a605c" stroke="#241212" stroke-width="0.8"/>
+        <path d="M 5,2 L 7,5 M 0,3 L 0,6 M -4,3 L -6,5" stroke="#c8b898" stroke-width="0.9" stroke-linecap="round"/>
+      </g>
+
+      <!-- cabeza enorme -->
+      <ellipse cx="0" cy="-45" rx="36" ry="19.5" fill="url(#cr28Skin)" stroke="#241212" stroke-width="1.3"/>
+      <!-- manchas y verrugas -->
+      <g fill="#4a3434" opacity="0.4">
+        <ellipse cx="-25" cy="-51" rx="4.4" ry="2.4"/>
+        <ellipse cx="27" cy="-36" rx="3.4" ry="2"/>
+        <ellipse cx="-16" cy="-19" rx="3.2" ry="1.7"/>
+        <ellipse cx="18" cy="-52" rx="2.6" ry="1.6"/>
+      </g>
+      <g fill="#4a3434">
+        <circle cx="-29" cy="-53" r="1.5"/><circle cx="-28.6" cy="-53.4" r="0.5" fill="#b09490" opacity="0.6"/>
+        <circle cx="26" cy="-57" r="1.2"/><circle cx="26.3" cy="-57.3" r="0.4" fill="#b09490" opacity="0.6"/>
+        <circle cx="-20" cy="-42" r="0.9"/><circle cx="21" cy="-25" r="0.8"/>
+      </g>
+
+      <!-- ojos pequeños y saltones bajo el ceño -->
+      <g>
+        <g transform="translate(-14,-56)">
+          <g>
+            <animateTransform attributeName="transform" type="scale" values="1 1;1 1;1 0.06;1 1" keyTimes="0;0.9;0.95;1" dur="6.2s" begin="-1.4s" repeatCount="indefinite"/>
+            <ellipse cx="0" cy="0" rx="4.2" ry="3.4" fill="#c8b060" stroke="#5a4424" stroke-width="0.7"/>
+            <ellipse cx="0.4" cy="0.2" rx="1.2" ry="2.5" fill="#1a1008"/>
+            <circle cx="-0.8" cy="-1" r="0.7" fill="#fff" opacity="0.8"/>
+          </g>
+        </g>
+        <g transform="translate(14,-56)">
+          <g>
+            <animateTransform attributeName="transform" type="scale" values="1 1;1 1;1 0.06;1 1" keyTimes="0;0.9;0.95;1" dur="6.2s" begin="-1.4s" repeatCount="indefinite"/>
+            <ellipse cx="0" cy="0" rx="4.2" ry="3.4" fill="#c8b060" stroke="#5a4424" stroke-width="0.7"/>
+            <ellipse cx="0.4" cy="0.2" rx="1.2" ry="2.5" fill="#1a1008"/>
+            <circle cx="-0.8" cy="-1" r="0.7" fill="#fff" opacity="0.8"/>
+          </g>
+        </g>
+        <path d="M -23,-62 Q -15,-61.5 -8,-58" fill="none" stroke="#3a2424" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M 8,-58 Q 15,-61.5 23,-62" fill="none" stroke="#3a2424" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M -19,-52 Q -14,-54 -9,-52 M 9,-52 Q 14,-54 19,-52" fill="none" stroke="#4a3434" stroke-width="0.7" opacity="0.6"/>
+      </g>
+
+      <!-- la boca: se cierra y abre con pausas aleatorias de 10-60 s entre ciclos -->
+      <g transform="translate(0,-46)">
+        <g>
+          <animateTransform attributeName="transform" type="scale"
+            values="1 1; 1 1; 1 0.16; 1 0.16; 1 1; 1 1; 1 0.16; 1 0.16; 1 1; 1 1; 1 0.16; 1 0.16; 1 1; 1 1; 1 0.16; 1 0.16; 1 1; 1 1; 1 0.16; 1 0.16; 1 1; 1 1; 1 0.16; 1 0.16; 1 1; 1 1"
+            keyTimes="0; 0.077778; 0.08; 0.088889; 0.091667; 0.172222; 0.174444; 0.183333; 0.186111; 0.261111; 0.263333; 0.272222; 0.275; 0.511111; 0.513333; 0.522222; 0.525; 0.655556; 0.657778; 0.666667; 0.669444; 0.905556; 0.907778; 0.916667; 0.919444; 1"
+            dur="180s" repeatCount="indefinite"/>
+          <g transform="translate(0,46)">
+      <path d="M -33,-43 Q -37,-38 -31,-32 Q -23,-26 -8,-25 Q 4,-24 16,-26 Q 30,-29 34,-35 Q 38,-40 32,-44 Q 19,-48 2,-48 Q -17,-48 -33,-43 Z"
+            fill="url(#cr28Lip)" stroke="#1a0208" stroke-width="1.3"/>
+      <g clip-path="url(#cr28Mouth)">
+        <path d="M -29,-41 Q -34,-36 -27,-31 Q -14,-26 0,-26 Q 14,-26 27,-31 Q 34,-36 29,-41 Q 14,-46 0,-46 Q -14,-46 -29,-41 Z" fill="url(#cr28Inner)"/>
+        <ellipse cx="0" cy="-32" rx="22" ry="13" fill="#12010a"/>
+        <!-- encías -->
+        <path d="M -30,-42 Q -14,-47 0,-47 Q 14,-47 30,-42 L 28,-38 Q 0,-43 -28,-38 Z" fill="#5a1028"/>
+        <path d="M -27,-31 Q 0,-26 27,-31 L 25,-34 Q 0,-29 -25,-34 Z" fill="#5a1028"/>
+        <!-- dientes inferiores: la lengua los cubre al salir -->
+        <g fill="url(#cr28Tooth)" stroke="#6a4c30" stroke-width="0.4">
+          <polygon points="-23,-30.4 -19,-30.6 -21,-37.5"/>
+          <polygon points="-16,-30 -11,-30.4 -13,-36"/>
+          <polygon points="-8,-29.6 -4,-29.8 -5.5,-35"/>
+          <polygon points="5,-29.8 9,-29.6 7,-35"/>
+          <polygon points="12,-30.2 17,-30 15,-36.5"/>
+          <polygon points="20,-30.6 24,-30.8 22,-37"/>
+        </g>
+        <!-- baba en las comisuras -->
+        <path d="M -17,-35 Q -19,-30 -17,-27" fill="none" stroke="#e8d8d8" stroke-width="0.7" opacity="0.45"/>
+        <path d="M 19,-34 Q 21,-30 19,-27" fill="none" stroke="#e8d8d8" stroke-width="0.6" opacity="0.4"/>
+      </g>
+      <!-- lengua sacada: cubre los dientes inferiores y centrales -->
+      <g>
+        <animate attributeName="opacity"
+          values="1; 1; 0; 0; 1; 1; 0; 0; 1; 1; 0; 0; 1; 1; 0; 0; 1; 1; 0; 0; 1; 1; 0; 0; 1; 1"
+          keyTimes="0; 0.077778; 0.08; 0.088889; 0.091667; 0.172222; 0.174444; 0.183333; 0.186111; 0.261111; 0.263333; 0.272222; 0.275; 0.511111; 0.513333; 0.522222; 0.525; 0.655556; 0.657778; 0.666667; 0.669444; 0.905556; 0.907778; 0.916667; 0.919444; 1"
+          dur="180s" repeatCount="indefinite"/>
+      <path d="M -7,-23.4 Q -3,-19.4 4,-21.2 Q 8,-19.6 6,-18 Q 0,-16.6 -6,-19.6 Q -9,-21 -7,-23.4 Z" fill="#2a0412" opacity="0.3"/>
+      <path d="M -8.5,-36 Q -10.5,-31.5 -9,-27.5 Q -8.5,-24 -5,-22.2 Q -1.5,-20.6 3,-21.8 Q 7.5,-23.2 8.8,-27 Q 10.3,-31.5 8.5,-36 Z"
+            fill="url(#cr28Tongue)" stroke="#5a1028" stroke-width="0.8"/>
+      <path d="M 0.2,-34.6 Q -0.4,-29 0.4,-24" fill="none" stroke="#7a1c36" stroke-width="0.5" opacity="0.45"/>
+      <path d="M -6.2,-30.8 Q -2.2,-28.8 2.4,-30" fill="none" stroke="#e08aa0" stroke-width="0.7" opacity="0.5"/>
+      <ellipse cx="0.8" cy="-23.8" rx="3.2" ry="1.1" fill="#d87090" opacity="0.45"/>
+      <circle cx="-2.4" cy="-22.6" r="0.45" fill="#e8a0b4" opacity="0.55"/>
+      <path d="M -6.8,-27.6 Q -3.6,-26 0.2,-26.8" fill="none" stroke="#8a2440" stroke-width="0.4" opacity="0.45"/>
+      </g>
+      <!-- dientes superiores, por delante de la lengua -->
+      <g clip-path="url(#cr28Mouth)">
+        <g fill="url(#cr28Tooth)" stroke="#6a4c30" stroke-width="0.4">
+          <polygon points="-26,-41 -21,-41.4 -23,-33"/>
+          <polygon points="-19,-42 -13,-42.4 -15,-31.5"/>
+          <polygon points="-11,-42.6 -5,-42.9 -7,-33"/>
+          <polygon points="-3,-43 -2,-43 -2,-36"/>
+          <polygon points="1,-43 7,-42.9 5,-31.5"/>
+          <polygon points="9,-42.6 15,-42.2 13,-32"/>
+          <polygon points="17,-42 23,-41.4 21,-33"/>
+          <polygon points="25,-41 29,-40.6 27,-35"/>
+        </g>
+      </g>
+      <!-- brillo del labio y comisuras manchadas -->
+      <path d="M -31,-44 Q -14,-49 2,-49 Q 18,-49 32,-44" fill="none" stroke="#c07888" stroke-width="0.9" opacity="0.4"/>
+      <path d="M -24,-46 Q -18,-47.6 -11,-47.6" fill="none" stroke="#e0a0b0" stroke-width="0.55" opacity="0.4"/>
+      <path d="M -32,-39 Q -35,-37 -33,-34" fill="none" stroke="#7a1028" stroke-width="1" opacity="0.6"/>
+      <path d="M 32,-39 Q 35,-37 33,-34" fill="none" stroke="#7a1028" stroke-width="1" opacity="0.6"/>
+          </g>
+        </g>
+      </g>
+
+      <!-- hocico chato con anilla, sobre el labio -->
+      <path d="M -10.5,-54 Q -11.5,-49 -5.8,-48 L 5.8,-48 Q 11.5,-49 10.5,-54 Q 5,-56 0,-56 Q -5,-56 -10.5,-54 Z" fill="#82605c" stroke="#2a1414" stroke-width="1"/>
+      <ellipse cx="-4.8" cy="-50.4" rx="1.9" ry="1.2" fill="#20100e"/>
+      <ellipse cx="4.8" cy="-50.4" rx="1.9" ry="1.2" fill="#20100e"/>
+      <path d="M -7,-55 Q 0,-57 7,-55" fill="none" stroke="#b09088" stroke-width="0.7" opacity="0.6"/>
+      <path d="M 0,-48.4 L 0,-47.2" stroke="#5a3a30" stroke-width="0.8"/>
+      <circle cx="0" cy="-44.6" r="3.2" fill="none" stroke="#c09a54" stroke-width="1.2"/>
+      <path d="M -2.6,-46.4 Q 0,-48 2.6,-46.4" fill="none" stroke="#e8cc8c" stroke-width="0.6" opacity="0.85"/>
+
+      <!-- luz cálida del hogar en el costado derecho -->
+      <path d="M 27,-58 Q 36,-53 36,-45 Q 36,-37 28,-30 L 24,-31 Q 31,-38 31,-45 Q 31,-52 23,-57 Z" fill="#d08a44" opacity="0.15"/>
+      <path d="M 32,-30 Q 37,-20 33,-6 L 29,-7 Q 32,-19 28,-29 Z" fill="#d08a44" opacity="0.12"/>
+
+      <!-- pelo ralo -->
+      <g stroke="#2a1c1c" stroke-width="1.3" fill="none" stroke-linecap="round">
+        <path d="M -17,-62 Q -21,-67 -25,-65"/>
+        <path d="M -7,-64 Q -8,-69 -4,-71"/>
+        <path d="M 5,-64 Q 8,-69 12,-70"/>
+        <path d="M 16,-62 Q 21,-66 25,-64"/>
+      </g>
+
+      <!-- gotas de baba que caen -->
+      <circle cx="21" cy="-28" r="0.9" fill="#e0d0d0" opacity="0">
+        <animate attributeName="cy" values="-28;-20" dur="2.8s" begin="-0.9s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0;0.55;0" dur="2.8s" begin="-0.9s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="-18" cy="-27" r="0.8" fill="#e0d0d0" opacity="0">
+        <animate attributeName="cy" values="-27;-19" dur="3.4s" begin="-2.1s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0;0.45;0" dur="3.4s" begin="-2.1s" repeatCount="indefinite"/>
+      </circle>
+
+      <!-- grillete roto en el tobillo derecho -->
+      <g transform="translate(31,0)">
+        <ellipse cx="0" cy="-2" rx="6" ry="2.8" fill="none" stroke="#5a5a64" stroke-width="1.7"/>
+        <ellipse cx="0" cy="-2" rx="6" ry="2.8" fill="none" stroke="#8a8a94" stroke-width="0.5" opacity="0.5"/>
+        <path d="M 5,-1 L 8,-3" stroke="#3a3a44" stroke-width="1.1"/>
+        <ellipse cx="9.4" cy="-4" rx="2" ry="1.2" fill="none" stroke="#4a4a54" stroke-width="0.9"/>
+      </g>
     </g>
-    <path d="M -20 8 Q -28 16 -24 22" fill="none" stroke="#7a1840" stroke-width="2" stroke-linecap="round"/>
-    <path d="M 20 8 Q 28 16 24 22" fill="none" stroke="#7a1840" stroke-width="2" stroke-linecap="round"/>
-    <path d="M -8 12 Q 0 18 8 12" fill="none" stroke="#3a0818" stroke-width="1"/>
   `,
   dedalo: () => `
-    <rect x="-12" y="-12" width="24" height="34" fill="#a08060" stroke="#5a3a20" stroke-width="1.2"/>
-    <circle cx="0" cy="-20" r="8" fill="#c0a080" stroke="#5a3a20" stroke-width="1"/>
-    <path d="M -8 -22 Q -4 -30 2 -28 Q 8 -26 8 -20" fill="#5a3a20"/>
-    <circle cx="-3" cy="-20" r="0.8" fill="#000"/>
-    <circle cx="3" cy="-20" r="0.8" fill="#000"/>
-    <path d="M -3 -15 Q 0 -13 3 -15" fill="none" stroke="#5a3a20" stroke-width="0.5"/>
-    <path d="M 8 -4 L 18 -2 L 16 6 L 6 4 Z" fill="#a0a0b0" stroke="#5a5a70" stroke-width="0.8"/>
-    <circle cx="11" cy="1" r="1.5" fill="#8a2020" opacity="0.7"/>
-    <path d="M 12 8 Q 14 14 10 18" fill="none" stroke="#8a2020" stroke-width="1" opacity="0.6"/>
-    <line x1="-12" y1="8" x2="-18" y2="16" stroke="#c0a080" stroke-width="2" stroke-linecap="round"/>
-    <line x1="12" y1="8" x2="18" y2="16" stroke="#c0a080" stroke-width="2" stroke-linecap="round"/>
+    <defs>
+      <linearGradient id="ded28Robe" x1="0" y1="0" x2="1" y2="0.2">
+        <stop offset="0"    stop-color="#f2ead6"/>
+        <stop offset="0.35" stop-color="#e0d4b8"/>
+        <stop offset="0.7"  stop-color="#c4b696"/>
+        <stop offset="1"    stop-color="#9e9072"/>
+      </linearGradient>
+      <linearGradient id="ded28Mantle" x1="0" y1="0" x2="0.8" y2="1">
+        <stop offset="0"    stop-color="#4e6078"/>
+        <stop offset="0.5"  stop-color="#35465c"/>
+        <stop offset="1"    stop-color="#1c2a3a"/>
+      </linearGradient>
+      <linearGradient id="ded28Beard" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#e8e0cc"/>
+        <stop offset="0.6" stop-color="#cfc5ae"/>
+        <stop offset="1" stop-color="#9e9480"/>
+      </linearGradient>
+    </defs>
+    <!-- sangre en el suelo, bajo la cadera herida -->
+    <ellipse cx="20" cy="1.2" rx="17" ry="3.4" fill="#4a050a" opacity="0.6"/>
+    <ellipse cx="17" cy="1" rx="10" ry="2.2" fill="#6a0a12" opacity="0.7"/>
+    <path d="M 29,0.8 Q 36,1.4 42,0.6" fill="none" stroke="#4a050a" stroke-width="1.4" opacity="0.5"/>
+    <circle cx="38" cy="1" r="0.9" fill="#4a050a" opacity="0.55"/>
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="0,0;0,-0.9;0,0" dur="4.6s" repeatCount="indefinite"/>
+      <!-- chiton griego, amplio y drapeado sobre el suelo -->
+      <path d="M -17,-30 Q -27,-24 -31,-12 Q -33,-3 -24,1 Q -10,4 0,3 Q 12,4 24,1 Q 33,-3 31,-12 Q 27,-24 17,-30 Z"
+            fill="url(#ded28Robe)" stroke="#4a4030" stroke-width="1.2"/>
+      <!-- rodillas bajo la tela -->
+      <path d="M -30,-12 Q -31,-19 -25,-20 Q -20,-19 -19,-13 Q -23,-9 -30,-12 Z" fill="#e4d8bc" stroke="#8a7c60" stroke-width="0.6" opacity="0.85"/>
+      <path d="M 30,-12 Q 31,-19 25,-20 Q 20,-19 19,-13 Q 23,-9 30,-12 Z" fill="#e4d8bc" stroke="#8a7c60" stroke-width="0.6" opacity="0.85"/>
+      <!-- sangre empapando el chiton desde la herida -->
+      <path d="M 14,-30 Q 19,-27 18,-21 Q 21,-17 19,-11 Q 22,-7 20,-2 L 14,-2 Q 15,-8 14,-13 Q 13,-20 10,-25 Z" fill="#5a0810" opacity="0.28"/>
+      <path d="M 16,-30 Q 17,-25 16,-21 Q 18,-17 17,-12 Q 18,-8 17,-3" fill="none" stroke="#7a0a12" stroke-width="2.2" opacity="0.75"/>
+      <path d="M 18,-26 Q 19,-21 18,-16" fill="none" stroke="#a81820" stroke-width="0.8" opacity="0.65"/>
+      <circle cx="19" cy="-6" r="0.9" fill="#6a0a12" opacity="0.7"/>
+      <circle cx="16" cy="-10" r="0.7" fill="#6a0a12" opacity="0.6"/>
+      <!-- pliegues del regazo -->
+      <g fill="none" stroke="#8a7c60" stroke-width="0.8" opacity="0.6">
+        <path d="M -14,-27 Q -19,-16 -22,-3"/>
+        <path d="M -6,-27 Q -9,-16 -10,-2"/>
+        <path d="M 3,-27 Q 4,-16 4,-2"/>
+        <path d="M 11,-27 Q 15,-16 18,-3"/>
+      </g>
+      <!-- greca en el bajo -->
+      <path d="M -31,-1 Q -16,3 0,2 Q 16,3 31,-1 L 30,1.8 Q 16,5.6 0,4.6 Q -16,5.6 -30,1.8 Z" fill="#8a3a28" opacity="0.92"/>
+      <g stroke="#e8dcc0" stroke-width="0.55" fill="none" opacity="0.8">
+        <path d="M -22,1.6 L -19,1.6 L -19,-0.2 L -16,-0.2 L -16,2 L -13,2"/>
+        <path d="M -8,2.2 L -5,2.2 L -5,0.4 L -2,0.4 L -2,2.6 L 1,2.6"/>
+        <path d="M 8,2.4 L 11,2.4 L 11,0.6 L 14,0.6 L 14,2.8 L 17,2.8"/>
+      </g>
+      <!-- piernas cruzadas -->
+      <path d="M -31,-7 Q -24,-2 -12,-2 Q -4,-2 0,-4 L 1,0 Q -10,4 -24,2 Q -30,0 -32,-3 Z" fill="#d8ccb0" stroke="#6a5c44" stroke-width="0.8"/>
+      <path d="M 31,-7 Q 24,-2 12,-2 Q 4,-2 0,-4 L -1,0 Q 10,4 24,2 Q 30,0 32,-3 Z" fill="#c8bc9e" stroke="#6a5c44" stroke-width="0.8"/>
+      <path d="M -25,-4 Q -14,-1 -2,-3 M 25,-4 Q 14,-1 2,-3" fill="none" stroke="#8a7c60" stroke-width="0.5" opacity="0.6"/>
+      <!-- tobillos -->
+      <path d="M -12,-2 Q -10,1 -8,2 L -3,3 Q -2,1 -3,-1 L -7,-3 Z" fill="#b08a62" stroke="#5a4028" stroke-width="0.5"/>
+      <path d="M 9,-2 Q 8,1 7,2 L 2,3 Q 1,1 2,-1 L 6,-3 Z" fill="#b08a62" stroke="#5a4028" stroke-width="0.5"/>
+      <!-- pie izquierdo, de perfil hacia fuera -->
+      <path d="M 0,2 Q -6,2.8 -11,2.2 Q -14.6,1.6 -15,-0.4 Q -15,-2 -12,-2.2 Q -7,-2.4 -3,-1.6 Q -1,-0.6 0,1 Z" fill="#b08a62" stroke="#5a4028" stroke-width="0.6"/>
+      <circle cx="-14" cy="-0.8" r="1.05" fill="#b8906a" stroke="#6a4a30" stroke-width="0.35"/>
+      <circle cx="-12.4" cy="-1.9" r="0.85" fill="#b8906a" stroke="#6a4a30" stroke-width="0.3"/>
+      <circle cx="-10.5" cy="-2.2" r="0.7" fill="#b8906a" stroke="#6a4a30" stroke-width="0.3"/>
+      <path d="M -12,-0.2 Q -8,0.4 -3,0.6" fill="none" stroke="#6a4a30" stroke-width="0.4" opacity="0.55"/>
+      <path d="M -13,1.2 Q -8,2 -1,1.4" fill="none" stroke="#3a2414" stroke-width="1.4"/>
+      <path d="M -8,-1.8 Q -5,0.2 -2,0.8" fill="none" stroke="#3a2414" stroke-width="1.2"/>
+      <!-- pie derecho, delante del izquierdo -->
+      <path d="M 1,3 Q 7,3.6 12,3 Q 15.4,2.2 15.6,0.4 Q 15.4,-1.4 12.4,-1.7 Q 7.4,-1.9 3.4,-1 Q 1.2,0 1,2 Z" fill="#b8906a" stroke="#5a4028" stroke-width="0.6"/>
+      <circle cx="14.4" cy="0.2" r="1.05" fill="#c0987a" stroke="#6a4a30" stroke-width="0.35"/>
+      <circle cx="12.8" cy="-0.9" r="0.85" fill="#c0987a" stroke="#6a4a30" stroke-width="0.3"/>
+      <circle cx="10.9" cy="-1.3" r="0.7" fill="#c0987a" stroke="#6a4a30" stroke-width="0.3"/>
+      <path d="M 12.4,0.8 Q 8.4,1.4 3.8,1.6" fill="none" stroke="#6a4a30" stroke-width="0.4" opacity="0.55"/>
+      <path d="M 13.4,2.2 Q 8.4,3 1.8,2.4" fill="none" stroke="#3a2414" stroke-width="1.4"/>
+      <path d="M 8.6,-0.8 Q 5.6,1.2 2.6,1.8" fill="none" stroke="#3a2414" stroke-width="1.2"/>
+      <!-- torso -->
+      <path d="M -18,-30 Q -22,-38 -20,-46 Q -12,-53 0,-54 Q 13,-53 20,-46 Q 22,-38 18,-30 Z"
+            fill="url(#ded28Robe)" stroke="#4a4030" stroke-width="1.1"/>
+      <g fill="none" stroke="#8a7c60" stroke-width="0.7" opacity="0.55">
+        <path d="M -12,-47 Q -14,-38 -12,-31"/>
+        <path d="M -4,-48 Q -5,-38 -4,-31"/>
+        <path d="M 5,-48 Q 7,-38 6,-31"/>
+      </g>
+      <path d="M -8,-51 Q 0,-46 9,-51" fill="none" stroke="#8a3a28" stroke-width="1.2"/>
+      <path d="M -7,-50.4 Q 0,-46.2 8,-50.4" fill="none" stroke="#d8b070" stroke-width="0.4" opacity="0.6"/>
+      <!-- faja y himation azul -->
+      <path d="M -19,-31 Q 0,-27 19,-31 L 18,-27 Q 0,-23 -18,-27 Z" fill="#8a3a28" stroke="#4a1a10" stroke-width="0.7"/>
+      <path d="M -8,-28 Q 0,-26 8,-28" fill="none" stroke="#c86a4a" stroke-width="0.5" opacity="0.6"/>
+      <!-- himation azul: hombro izquierdo, banda ancha y regazo -->
+      <path d="M -19,-47 Q -27,-42 -28,-31 Q -28,-20 -20,-14 L -11,-18 Q -18,-24 -19,-34 Q -20,-41 -13,-45 Z" fill="url(#ded28Mantle)" stroke="#101a26" stroke-width="0.9"/>
+      <path d="M -13,-45 Q -18,-40 -18,-34 Q -17,-26 -12,-20 L -5,-23 Q -11,-28 -12,-34 Q -12,-40 -8,-44 Z" fill="#4e6078" opacity="0.4"/>
+      <!-- banda ancha por el vientre, bajo la herida -->
+      <path d="M -17,-44 Q -8,-38 1,-33 Q 8,-29 15,-26 L 12,-19 Q 5,-23 -4,-27 Q -13,-32 -20,-38 Z" fill="url(#ded28Mantle)" stroke="#101a26" stroke-width="0.9"/>
+      <path d="M -13,-40 Q -4,-34 4,-28 M -9,-35 Q -2,-30 5,-26" fill="none" stroke="#7a8ca4" stroke-width="0.45" opacity="0.45"/>
+      <path d="M -16,-41 Q -8,-35 0,-30" fill="none" stroke="#101a26" stroke-width="0.5" opacity="0.4"/>
+      <!-- caída ancha sobre el regazo hasta la rodilla derecha -->
+      <path d="M -22,-16 Q -10,-24 2,-21 Q 12,-25 23,-17 L 21,-10 Q 17,-14 14,-9 Q 10,-13 6,-8 Q 2,-12 -3,-8 Q -8,-12 -13,-8 Q -18,-12 -21,-9 Z" fill="url(#ded28Mantle)" stroke="#101a26" stroke-width="0.9"/>
+      <path d="M -19,-14 Q -8,-19 3,-17 Q 12,-20 20,-14" fill="none" stroke="#7a8ca4" stroke-width="0.5" opacity="0.5"/>
+      <path d="M -14,-10 Q -11,-13 -8,-10 M -4,-10 Q -1,-13 2,-9 M 5,-9 Q 8,-12 11,-8 M 14,-9 Q 17,-12 19,-9" fill="none" stroke="#101a26" stroke-width="0.45" opacity="0.5"/>
+      <!-- fimbria dorada en el borde -->
+      <path d="M -21,-9.4 Q -18,-12.4 -13,-8.4 Q -8,-12.4 -3,-8.4 Q 2,-12.4 6,-8.4 Q 10,-13.4 14,-9.4 Q 17,-14.4 21.4,-10.4" fill="none" stroke="#b08a48" stroke-width="0.5" opacity="0.6"/>
+      <!-- fíbula dorada en el hombro -->
+      <circle cx="-19" cy="-47" r="2.2" fill="#b08a48" stroke="#5a3f18" stroke-width="0.6"/>
+      <circle cx="-19" cy="-47" r="0.8" fill="#3a280e"/>
+      <!-- desgarro abierto en el costado derecho, sin vendaje -->
+      <path d="M 8.4,-41.8 Q 12.2,-39 14.8,-35.8 Q 17,-33.4 18.6,-30.6 Q 15.6,-30.8 13.4,-33 Q 10.4,-36 8.4,-39.4 Q 7.8,-40.8 8.4,-41.8 Z" fill="#8a4a3c" opacity="0.5"/>
+      <path d="M 9.6,-41.2 Q 12.6,-38.2 15.2,-35 Q 16.8,-33 17.6,-31.6 Q 15.8,-32.2 14.2,-34 Q 11.4,-37 9.6,-39.8 Z" fill="#3a0508"/>
+      <path d="M 10.2,-40.6 Q 13,-37.6 15.6,-34.2" fill="none" stroke="#160104" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M 8.8,-41.4 Q 6,-39.8 4.4,-37 M 17.8,-31 Q 19.8,-29 21,-26.6" fill="none" stroke="#4a1010" stroke-width="0.6" opacity="0.8"/>
+      <path d="M 9,-40.8 Q 11.8,-37.8 14.2,-34.6 M 15.4,-33.2 Q 16.8,-32.2 17.6,-31.2" fill="none" stroke="#c02830" stroke-width="0.55" opacity="0.75"/>
+      <path d="M 8,-42.4 Q 8.8,-40.4 8.6,-38.8 M 19.4,-30.4 Q 19,-29 19.2,-27.8" fill="none" stroke="#e4d8bc" stroke-width="0.55" opacity="0.85"/>
+      <!-- sangre que brota del desgarro -->
+      <path d="M 14.8,-32.2 Q 16.6,-29 16,-26.4 Q 17.6,-23 16.6,-19.6 Q 17.4,-16 16.8,-13.4" fill="none" stroke="#8a0e16" stroke-width="1.5" stroke-linecap="round" opacity="0.85"/>
+      <path d="M 16,-27.8 Q 17.4,-24.6 16.8,-21.8" fill="none" stroke="#b41c24" stroke-width="0.6" opacity="0.7"/>
+      <circle cx="16.8" cy="-18.6" r="1" fill="#7a0a12" opacity="0.8"/>
+      <circle cx="16.4" cy="-16.2" r="0.7" fill="#7a0a12" opacity="0.65"/>
+      <circle cx="17" cy="-14" r="0.55" fill="#7a0a12" opacity="0.55"/>
+      <!-- brazo izquierdo: antebrazo recogido, mano en el regazo -->
+      <path d="M -18,-47 Q -27,-42 -29,-34 Q -30,-30 -26,-29 Q -21,-31 -20,-37 Q -19,-42 -13,-45 Z" fill="url(#ded28Robe)" stroke="#4a4030" stroke-width="1"/>
+      <path d="M -26,-31 Q -26,-25 -21,-21 Q -18,-19 -15,-18" fill="none" stroke="#b08a62" stroke-width="3.6" stroke-linecap="round"/>
+      <path d="M -23,-24 Q -20,-21 -17,-19.6" fill="none" stroke="#8a6244" stroke-width="0.7" opacity="0.5"/>
+      <g transform="translate(-13,-17) rotate(14)">
+        <ellipse cx="0" cy="0" rx="4.6" ry="2.9" fill="#b08a62" stroke="#5a4028" stroke-width="0.6"/>
+        <path d="M 3.6,-1.4 L 7.6,-2.2 M 4,0 L 8.2,-0.2 M 3.6,1.4 L 7.4,1.8" stroke="#b08a62" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M 7.6,-2.2 Q 8.6,-2.2 8.8,-1.4 M 8.2,-0.2 Q 9.2,0 9,0.8 M 7.4,1.8 Q 8.2,2.2 8,2.8" fill="none" stroke="#b08a62" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M -1.6,-1 Q 0.6,-0.4 2.6,-0.8" fill="none" stroke="#7a5a3a" stroke-width="0.45" opacity="0.6"/>
+        <path d="M -2.4,1.6 Q -4.4,2.6 -5.6,2" fill="none" stroke="#a8805c" stroke-width="1.1" stroke-linecap="round"/>
+      </g>
+      <!-- brazo derecho: mano sobre la herida -->
+      <path d="M 18,-47 Q 27,-42 29,-34 Q 30,-30 26,-29 Q 21,-31 20,-37 Q 19,-42 13,-45 Z" fill="url(#ded28Robe)" stroke="#4a4030" stroke-width="1"/>
+      <path d="M 26.6,-28 Q 22.6,-29.6 18,-30.4 L 18.8,-33.8 Q 23,-32.4 27.4,-31.2 Z" fill="#b08a62" stroke="#5a4028" stroke-width="0.55"/>
+      <path d="M 25,-29.2 Q 22,-30.4 19.4,-31.2" fill="none" stroke="#8a6244" stroke-width="0.6" opacity="0.45"/>
+      <path d="M 19.6,-30.6 Q 19.2,-31.8 19.8,-32.8" fill="none" stroke="#8a6244" stroke-width="0.5" opacity="0.6"/>
+      <path d="M 24.6,-27.4 Q 26,-28.6 26.4,-30.2" fill="none" stroke="#4a4030" stroke-width="0.7" opacity="0.5"/>
+      <g transform="translate(16.5,-32) rotate(-25)">
+        <path d="M -3.4,2.4 Q -5.4,0.2 -4.6,-2.2 Q -3.4,-4.2 -0.4,-4.6 Q 2.8,-4.4 4.2,-2.2 Q 5.2,0 4,2.2 Q 0.4,3.8 -3.4,2.4 Z" fill="#b08a62" stroke="#5a4028" stroke-width="0.6"/>
+        <path d="M -4.4,0.6 Q -6.8,0 -7,-1.8 Q -6.6,-3.2 -4.8,-3" fill="none" stroke="#b08a62" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M -3.6,-2 Q -5.2,-4.4 -4.2,-6.4 M -1.2,-3.4 Q -1.8,-6 -1,-7.8 M 1.6,-3.6 Q 1.8,-6 2.8,-7.4 M 3.6,-2 Q 4.6,-3.8 5.8,-4.8" fill="none" stroke="#b08a62" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M -2.4,-1.2 Q 0,-0.4 2.6,-1.4" fill="none" stroke="#7a5a3a" stroke-width="0.45" opacity="0.6"/>
+        <path d="M -3.6,1.4 Q -1,2.6 2.4,1.6" fill="none" stroke="#8a5a50" stroke-width="0.6" opacity="0.6"/>
+        <ellipse cx="0.2" cy="0.4" rx="2.2" ry="1.4" fill="#8a0e16" opacity="0.18"/>
+        <path d="M -3.2,-3.2 Q -2,-5.2 -1.4,-6.6 M 1.2,-4.4 Q 2.2,-5.6 3.2,-6.2" fill="none" stroke="#8a0e16" stroke-width="0.6" opacity="0.8"/>
+        <circle cx="-2.4" cy="-4.8" r="0.5" fill="#8a0e16" opacity="0.8"/>
+      </g>
+      <!-- cuello y cabeza -->
+      <path d="M -2,-53 L 6,-53 L 6,-50 L -2,-50 Z" fill="#a8805c"/>
+      <!-- cabeceo: la cabeza baja y se recupera con intervalos irregulares de 9-23 s (dentro de 6-25 s) -->
+      <g>
+        <animateTransform attributeName="transform" type="translate"
+          values="0,0; 0,0; 0,2.6; 0,2.6; 0,0; 0,0; 0,2.6; 0,2.6; 0,0; 0,0; 0,2.6; 0,2.6; 0,0; 0,0; 0,2.6; 0,2.6; 0,0; 0,0; 0,2.6; 0,2.6; 0,0; 0,0"
+          keyTimes="0; 0.0744; 0.0889; 0.0922; 0.0967; 0.33; 0.3444; 0.3478; 0.3522; 0.43; 0.4444; 0.4478; 0.4522; 0.63; 0.6444; 0.6478; 0.6522; 0.8633; 0.8778; 0.8811; 0.8856; 1"
+          dur="90s" repeatCount="indefinite"/>
+        <ellipse cx="2" cy="-60" rx="9.2" ry="9.6" fill="#b08a62" stroke="#5a3c22" stroke-width="0.9"/>
+      <ellipse cx="-6.4" cy="-59" rx="2" ry="2.7" fill="#a8805c" stroke="#5a3c22" stroke-width="0.6"/>
+      <ellipse cx="10.4" cy="-59" rx="2" ry="2.7" fill="#a8805c" stroke="#5a3c22" stroke-width="0.6"/>
+      <!-- pelo blanco a los lados y calvicie -->
+      <path d="M -6.6,-63 Q -8,-57 -6,-53 Q -8.4,-54 -8.6,-58 Q -8.4,-62 -6.6,-63 Z" fill="#d8d0bc"/>
+      <path d="M 10.6,-63 Q 12,-57 10,-53 Q 12.4,-54 12.6,-58 Q 12.4,-62 10.6,-63 Z" fill="#d8d0bc"/>
+      <path d="M -4,-68 Q 2,-71 8,-68" fill="none" stroke="#c8a078" stroke-width="0.7" opacity="0.45"/>
+      <!-- cejas de dolor y ojos entornados -->
+      <path d="M -6,-65 Q -3,-66.6 0,-65.4" fill="none" stroke="#e8e0cc" stroke-width="1.3" stroke-linecap="round"/>
+      <path d="M 4,-65.4 Q 7,-66.6 10,-65" fill="none" stroke="#e8e0cc" stroke-width="1.3" stroke-linecap="round"/>
+      <path d="M 1,-66.4 L 1,-65.2 M 3,-66.4 L 3,-65.2" stroke="#8a6a4a" stroke-width="0.35" opacity="0.5"/>
+      <path d="M -5.4,-62.4 Q -3.4,-63.4 -1.4,-62.4" fill="none" stroke="#3a2a1c" stroke-width="0.8"/>
+      <path d="M 4.6,-62.4 Q 6.6,-63.4 8.6,-62.4" fill="none" stroke="#3a2a1c" stroke-width="0.8"/>
+      <circle cx="-3.4" cy="-62" r="0.55" fill="#1a1008"/>
+      <circle cx="6.6" cy="-62" r="0.55" fill="#1a1008"/>
+      <path d="M -4.6,-60.6 Q -3.4,-61.2 -2.2,-60.6 M 5.4,-60.6 Q 6.6,-61.2 7.8,-60.6" fill="none" stroke="#7a5a3a" stroke-width="0.35" opacity="0.5"/>
+      <!-- nariz y boca de dolor -->
+      <path d="M 2,-61 Q 0.8,-58.4 2,-57.4 Q 3.2,-58.2 2,-61 Z" fill="#9a7450" opacity="0.9"/>
+      <path d="M -1,-55.6 Q 2,-53.6 5,-55.6 Q 3.6,-53.2 2,-53.1 Q 0.4,-53.2 -1,-55.6 Z" fill="#3a1810" opacity="0.9"/>
+      <path d="M 0,-54.6 Q 2,-53.6 4,-54.6" fill="none" stroke="#e8d8c0" stroke-width="0.4" opacity="0.5"/>
+      <!-- bigote y barba larga -->
+      <path d="M -6,-56 Q -2,-54 2,-55 Q 6,-54 10,-56 Q 7,-52 2,-53 Q -3,-52 -6,-56 Z" fill="url(#ded28Beard)"/>
+      <path d="M -6,-54 Q -9,-48 -7,-43 Q -2,-38 3,-37 Q 8,-39 10,-44 Q 11,-50 8,-54 Q 5,-51 2,-51 Q -1,-51 -4,-53 Z"
+            fill="url(#ded28Beard)" stroke="#8e8470" stroke-width="0.5"/>
+      <g fill="none" stroke="#9a907c" stroke-width="0.5" opacity="0.7">
+        <path d="M -3,-52 Q -4,-46 -1,-41"/>
+        <path d="M 4,-52 Q 5,-46 3,-40"/>
+        <path d="M 1,-51 L 1,-39"/>
+      </g>
+      <path d="M 0,-56 Q 2,-55 4,-56" fill="none" stroke="#5a4028" stroke-width="0.5"/>
+      <!-- sudor frío en la sien -->
+      <path d="M 11,-67 Q 10,-65 11,-64 Q 12,-65 11,-67 Z" fill="#cfe0e8" opacity="0.7"/>
+      <circle cx="11" cy="-65.4" r="0.4" fill="#fff" opacity="0.7"/>
+      <!-- polvo en la base -->
+      <g fill="#2a2214" opacity="0.3">
+        <ellipse cx="-28" cy="-1" rx="5" ry="1.4"/>
+        <ellipse cx="29" cy="0" rx="4" ry="1.2"/>
+      </g>
+    </g>
   `,
   bailarina: () => `
     <ellipse cx="0" cy="16" rx="12" ry="2" fill="#000" opacity="0.3"/>
@@ -6078,6 +6557,314 @@ const BACKGROUNDS = {
     <rect width="900" height="600" fill="url(#almVign)" pointer-events="none"/>
     `;
   },
+  /* ── Pasillo de la Fortaleza (hab. 7) ──
+     Corredor de un solo punto de fuga. Los muros laterales se inclinan
+     hacia el fondo; cada nicho usa la misma base, escala y sesgo que su
+     hoja para que el marco y la puerta encajen sin holguras. */
+  pasillo: () => {
+    const hash = (a, b) => {
+      const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
+      return v - Math.floor(v);
+    };
+    const VPX = 450, VPY = 320;
+    const EL = 230, ER = 670, ET = 163.6, EB = 456.9;
+    const SLOPE = 0.62217;
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const floorAt = (x, side) => side === 'l'
+      ? 600 - SLOPE * x
+      : EB + SLOPE * (x - ER);
+    const floorX = (xb, y) => VPX + (xb - VPX) * ((y - VPY) / (600 - VPY));
+
+    let ceiling = `<polygon points="0,0 900,0 ${ER},${ET} ${EL},${ET}" fill="url(#pasCeil)"/>`;
+    for (const y of [22, 52, 86, 122, 152]) {
+      const xl = EL * (y / ET);
+      const xr = 900 - xl;
+      ceiling += `<rect x="${xl.toFixed(1)}" y="${y}" width="${(xr - xl).toFixed(1)}" height="5" fill="#2e242c" opacity="0.8"/>`;
+      ceiling += `<line x1="${xl.toFixed(1)}" y1="${y + 5}" x2="${xr.toFixed(1)}" y2="${y + 5}" stroke="#050409" stroke-width="2" opacity="0.9"/>`;
+      ceiling += `<line x1="${xl.toFixed(1)}" y1="${y + 0.5}" x2="${xr.toFixed(1)}" y2="${y + 0.5}" stroke="#5a4a52" stroke-width="0.4" opacity="0.2"/>`;
+    }
+    for (const xb of [150, 300, 600, 750]) {
+      const xe = VPX + (xb - VPX) * ((ET - VPY) / (0 - VPY));
+      ceiling += `<line x1="${xb}" y1="0" x2="${xe.toFixed(1)}" y2="${ET}" stroke="#09070c" stroke-width="4.2" opacity="0.82"/>`;
+      ceiling += `<line x1="${xb + 1.4}" y1="0" x2="${(xe + 0.7).toFixed(1)}" y2="${ET}" stroke="#5a4a52" stroke-width="0.6" opacity="0.2"/>`;
+    }
+
+    let walls = `<polygon points="0,0 ${EL},${ET} ${EL},${EB} 0,600" fill="url(#pasWallL)"/>`;
+    walls += `<polygon points="900,0 ${ER},${ET} ${ER},${EB} 900,600" fill="url(#pasWallR)"/>`;
+    const courseLine = (side, yNear) => {
+      const xNear = side === 'l' ? 0 : 900;
+      const xFar = side === 'l' ? EL : ER;
+      const yFar = VPY + (yNear - VPY) * ((xFar - VPX) / (xNear - VPX));
+      return { xNear, yNear, xFar, yFar };
+    };
+    for (const side of ['l', 'r']) {
+      const ys = [0, 90, 180, 270, 360, 450, 540, 600];
+      for (let i = 0; i < ys.length - 1; i++) {
+        const a = courseLine(side, ys[i]), b = courseLine(side, ys[i + 1]);
+        const x0 = a.xNear, x1 = a.xFar;
+        const tone = (i % 2) ? '#0d0a10' : '#120e15';
+        walls += `<path d="M ${x0},${a.yNear} L ${x1},${a.yFar} L ${x1},${b.yFar} L ${x0},${b.yNear} Z" fill="${tone}" opacity="0.28"/>`;
+        walls += `<line x1="${x0}" y1="${a.yNear}" x2="${x1}" y2="${a.yFar}" stroke="#050408" stroke-width="1.3" opacity="0.85"/>`;
+        walls += `<line x1="${x0}" y1="${a.yNear + 1.3}" x2="${x1}" y2="${a.yFar + 1.3}" stroke="#6a5a64" stroke-width="0.45" opacity="0.2"/>`;
+        for (let j = 0; j < 4; j++) {
+          const f = (j + (i % 2 ? 0.5 : 0)) / 4;
+          if (f <= 0.04 || f >= 0.96) continue;
+          const xa = lerp(x0, x1, f);
+          const yt = lerp(a.yNear, a.yFar, f);
+          const yb = lerp(b.yNear, b.yFar, f);
+          walls += `<line x1="${xa.toFixed(1)}" y1="${yt.toFixed(1)}" x2="${xa.toFixed(1)}" y2="${yb.toFixed(1)}" stroke="#070509" stroke-width="0.9" opacity="0.55"/>`;
+          walls += `<line x1="${(xa + 0.6).toFixed(1)}" y1="${(yt + 1).toFixed(1)}" x2="${(xa + 0.6).toFixed(1)}" y2="${(yb - 1).toFixed(1)}" stroke="#5a4a50" stroke-width="0.3" opacity="0.12"/>`;
+        }
+      }
+    }
+
+    const wainscot = (side) => {
+      const x0 = side === 'l' ? 0 : ER;
+      const x1 = side === 'l' ? EL : 900;
+      const yFloor0 = floorAt(x0, side);
+      const yFloor1 = floorAt(x1, side);
+      const top0 = yFloor0 - 44, top1 = yFloor1 - 44;
+      let o = `<path d="M ${x0},${yFloor0} L ${x1},${yFloor1} L ${x1},${top1} L ${x0},${top0} Z" fill="url(#pasWood)" opacity="0.9"/>`;
+      o += `<line x1="${x0}" y1="${top0}" x2="${x1}" y2="${top1}" stroke="#6a4a2c" stroke-width="2.2" opacity="0.55"/>`;
+      o += `<line x1="${x0}" y1="${top0 + 3}" x2="${x1}" y2="${top1 + 3}" stroke="#0a0604" stroke-width="1" opacity="0.7"/>`;
+      for (let i = 1; i < 10; i++) {
+        const f = i / 10;
+        const x = lerp(x0, x1, f);
+        const yf = lerp(yFloor0, yFloor1, f);
+        const yt = lerp(top0, top1, f);
+        o += `<line x1="${x}" y1="${yt + 4}" x2="${x}" y2="${yf - 1}" stroke="#080503" stroke-width="0.8" opacity="0.55"/>`;
+        o += `<line x1="${x + 0.7}" y1="${yt + 5}" x2="${x + 0.7}" y2="${yf - 1}" stroke="#7a5834" stroke-width="0.3" opacity="0.18"/>`;
+      }
+      return o;
+    };
+    walls += wainscot('l') + wainscot('r');
+
+    let end = `<rect x="${EL}" y="${ET}" width="${ER - EL}" height="${EB - ET}" fill="url(#pasEnd)"/>`;
+    const rows = 7;
+    for (let r = 1; r < rows; r++) {
+      const y = ET + (EB - ET) * r / rows;
+      end += `<line x1="${EL}" y1="${y.toFixed(1)}" x2="${ER}" y2="${y.toFixed(1)}" stroke="#0a0707" stroke-width="1" opacity="0.65"/>`;
+      end += `<line x1="${EL}" y1="${(y + 1).toFixed(1)}" x2="${ER}" y2="${(y + 1).toFixed(1)}" stroke="#5a4a3a" stroke-width="0.35" opacity="0.16"/>`;
+    }
+    for (let r = 0; r < rows; r++) {
+      const y0 = ET + (EB - ET) * r / rows, y1 = ET + (EB - ET) * (r + 1) / rows;
+      for (let c = 0; c < 7; c++) {
+        const f = (c + (r % 2 ? 0.5 : 0)) / 7;
+        if (f <= 0.03 || f >= 0.97) continue;
+        const x = lerp(EL, ER, f);
+        end += `<line x1="${x.toFixed(1)}" y1="${(y0 + 1).toFixed(1)}" x2="${x.toFixed(1)}" y2="${(y1 - 1).toFixed(1)}" stroke="#080606" stroke-width="0.8" opacity="0.5"/>`;
+      }
+    }
+    end += `<rect x="${EL}" y="${ET}" width="${ER - EL}" height="14" fill="#2c2220" stroke="#0a0706" stroke-width="0.9"/>`;
+    end += `<line x1="${EL}" y1="${ET + 3}" x2="${ER}" y2="${ET + 3}" stroke="#8a7050" stroke-width="0.6" opacity="0.32"/>`;
+    end += `<rect x="${EL}" y="${EB - 12}" width="${ER - EL}" height="12" fill="#1a1312"/>`;
+    for (const px of [EL + 10, ER - 10]) {
+      end += `<rect x="${px - 7}" y="${ET + 10}" width="14" height="${EB - ET - 22}" fill="#241b1a" stroke="#0a0706" stroke-width="0.8"/>`;
+      end += `<line x1="${px - 5}" y1="${ET + 14}" x2="${px - 5}" y2="${EB - 14}" stroke="#4a3a32" stroke-width="0.5" opacity="0.35"/>`;
+      end += `<rect x="${px - 10}" y="${ET + 14}" width="20" height="6" fill="#322622" stroke="#0a0706" stroke-width="0.5"/>`;
+      end += `<rect x="${px - 10}" y="${EB - 20}" width="20" height="6" fill="#322622" stroke="#0a0706" stroke-width="0.5"/>`;
+    }
+
+    let floor = `<polygon points="0,600 900,600 ${ER},${EB} ${EL},${EB}" fill="url(#pasFloor)"/>`;
+    const rowYs = [EB, 474, 494, 518, 546, 572, 600];
+    const bottomXs = [0, 90, 180, 270, 360, 450, 540, 630, 720, 810, 900];
+    for (let r = 0; r < rowYs.length - 1; r++) {
+      const y0 = rowYs[r], y1 = rowYs[r + 1];
+      for (let c = 0; c < bottomXs.length - 1; c++) {
+        const xb0 = bottomXs[c], xb1 = bottomXs[c + 1];
+        const x00 = floorX(xb0, y0), x01 = floorX(xb1, y0);
+        const x10 = floorX(xb1, y1), x11 = floorX(xb0, y1);
+        const tone = ['#181310', '#1e1814', '#14100e'][Math.floor(hash(r * 3 + 1, c * 5 + 2) * 3)];
+        const pts = `${x00.toFixed(1)},${y0} ${x01.toFixed(1)},${y0} ${x10.toFixed(1)},${y1} ${x11.toFixed(1)},${y1}`;
+        floor += `<polygon points="${pts}" fill="${tone}"/>`;
+        floor += `<polygon points="${pts}" fill="none" stroke="#070505" stroke-width="${(0.5 + r * 0.18).toFixed(2)}" opacity="0.75"/>`;
+        if (hash(r + 4, c + 9) > 0.72) {
+          const gx = (x00 + x10) / 2, gy = (y0 + y1) / 2;
+          floor += `<ellipse cx="${gx.toFixed(1)}" cy="${gy.toFixed(1)}" rx="${(3 + hash(r, c) * 7).toFixed(1)}" ry="${(1 + hash(c, r) * 1.6).toFixed(1)}" fill="#0a0705" opacity="0.28"/>`;
+        }
+      }
+    }
+    floor += `<path d="M 348,600 L 552,600 L 498,${EB} L 402,${EB} Z" fill="url(#pasCarpet)" stroke="#1a080a" stroke-width="1.2"/>`;
+    floor += `<path d="M 360,600 L 540,600 L 491,${EB + 4} L 409,${EB + 4} Z" fill="none" stroke="#a87a48" stroke-width="0.8" opacity="0.3"/>`;
+    for (const [y, ry] of [[472, 3], [496, 4.5], [528, 6], [566, 8]]) {
+      const hw = 48 + 54 * ((y - EB) / (600 - EB));
+      const rx = hw * 0.62;
+      floor += `<path d="M 450,${y - ry} L ${(450 + rx).toFixed(1)},${y} L 450,${y + ry} L ${(450 - rx).toFixed(1)},${y} Z" fill="none" stroke="#b08a54" stroke-width="0.7" opacity="0.25"/>`;
+      floor += `<circle cx="450" cy="${y}" r="${(ry * 0.35).toFixed(1)}" fill="#b08a54" opacity="0.18"/>`;
+    }
+    floor += `<ellipse cx="450" cy="${(EB + 5).toFixed(1)}" rx="120" ry="10" fill="#000" opacity="0.35"/>`;
+
+    const niche = (id) => {
+      const d = PASILLO7[id];
+      const giant = !!d.giant;
+      const s = d.scale;
+      const py = d.base - 36 * s;
+      const sk = d.skew ? ` skewY(${d.skew})` : '';
+      const half = 32.64, bottom = 36, spring = -35.5, apex = -61.3;
+      const pad = giant ? 13 : 10.5;
+      const halfO = half + pad;
+      const bottomO = bottom + 6;
+      const springO = spring + 2;
+      const apexO = apex - pad;
+      const reveal = 2 / s;                 // 2 px reales en pantalla
+      const halfH = half + reveal;
+      const bottomH = bottom + reveal * 0.8;
+      const springH = spring + reveal * 0.55;
+      const apexH = apex - reveal;
+      const outer = `M ${-halfO},${bottomO} L ${-halfO},${springO} Q ${-halfO},${apexO} 0,${apexO} Q ${halfO},${apexO} ${halfO},${springO} L ${halfO},${bottomO} Z`;
+      const hole = `M ${-halfH},${bottomH} L ${-halfH},${springH} Q ${-halfH},${apexH} 0,${apexH} Q ${halfH},${apexH} ${halfH},${springH} L ${halfH},${bottomH} Z`;
+      let g = `<g transform="translate(${d.x},${py}) scale(${s})${sk}">`;
+      if (id === 'p_prohib7') {
+        g += `<ellipse cx="0" cy="-24" rx="58" ry="86" fill="url(#pasProhibGlow)" opacity="0.8"/>`;
+      }
+      g += `<path d="${outer}" fill="#000" opacity="0.6" filter="url(#pasBlur)"/>`;
+      g += `<path d="${outer}" fill="url(#pasStone)" stroke="#080605" stroke-width="1.2"/>`;
+      g += `<clipPath id="pasNicheClip_${id}"><path d="${outer}"/></clipPath>`;
+      g += `<g clip-path="url(#pasNicheClip_${id})" stroke="#0a0705" stroke-width="0.8" opacity="0.55">`;
+      const rInX = halfH, rInY = springH - apexH, rOutX = halfO, rOutY = springO - apexO;
+      for (let i = 0; i <= 12; i++) {
+        const a = Math.PI * i / 12;
+        const x1 = rInX * Math.cos(a), y1 = springH - rInY * Math.sin(a);
+        const x2 = rOutX * Math.cos(a), y2 = springO - rOutY * Math.sin(a);
+        g += `<line x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}"/>`;
+      }
+      g += `</g>`;
+      g += `<path d="${hole}" fill="#030206" stroke="#2a211a" stroke-width="0.8"/>`;
+      g += `<path d="${hole}" fill="url(#pasNicheDepth)" opacity="0.9"/>`;
+      if (id === 'p_prohib7') {
+        g += `<rect x="${-halfH}" y="${(bottomH + 1).toFixed(2)}" width="${(halfH * 2).toFixed(2)}" height="1.1" fill="#b090e0" opacity="0.5"/>`;
+      }
+      g += `<path d="M -7,${(apexO + 2).toFixed(1)} L 7,${(apexO + 2).toFixed(1)} L 5,${(apexO - 9).toFixed(1)} L -5,${(apexO - 9).toFixed(1)} Z" fill="#4a3a2e" stroke="#0a0705" stroke-width="0.9"/>`;
+      g += `<rect x="${-halfO - 1.5}" y="${springO - 1}" width="7" height="6" fill="#3a2e24" stroke="#0a0705" stroke-width="0.6"/>`;
+      g += `<rect x="${halfO - 5.5}" y="${springO - 1}" width="7" height="6" fill="#3a2e24" stroke="#0a0705" stroke-width="0.6"/>`;
+      g += `<rect x="${-halfO - 2}" y="${bottom + 2}" width="${(halfO + 2) * 2}" height="${giant ? 7 : 5.5}" fill="#2e241a" stroke="#0a0705" stroke-width="0.9"/>`;
+      g += `<line x1="${-halfO - 2}" y1="${bottom + 3}" x2="${halfO + 2}" y2="${bottom + 3}" stroke="#8a7050" stroke-width="0.55" opacity="0.35"/>`;
+      g += `<path d="M ${-halfO + 1},${bottomO} L ${-halfO + 1},${springO} Q ${-halfO + 1},${apexO + 1} 0,${apexO + 1} Q ${halfO - 1},${apexO + 1} ${halfO - 1},${springO} L ${halfO - 1},${bottomO}"
+               fill="none" stroke="#7a6044" stroke-width="0.7" opacity="0.28"/>`;
+      g += `</g>`;
+      return g;
+    };
+
+    const fixture = `<g transform="translate(300,348)">
+      <ellipse cx="0" cy="0" rx="26" ry="34" fill="url(#pasTorchGlow)" opacity="0.55"/>
+      <rect x="-5" y="-18" width="10" height="36" rx="2" fill="#1a1512" stroke="#0a0705" stroke-width="0.9"/>
+      <path d="M -9,-16 L 0,-24 L 9,-16" fill="none" stroke="#3a2e24" stroke-width="1.3"/>
+      <circle cx="0" cy="0" r="7" fill="none" stroke="#3a2e24" stroke-width="2.2"/>
+      <circle cx="0" cy="0" r="7" fill="none" stroke="#8a6a3a" stroke-width="0.5" opacity="0.5"/>
+      <line x1="-5" y1="-6" x2="-12" y2="-10" stroke="#2a211a" stroke-width="1.2"/>
+      <line x1="5" y1="-6" x2="12" y2="-10" stroke="#2a211a" stroke-width="1.2"/>
+    </g>`;
+
+    const plaque = `<g transform="translate(606,272)" opacity="0.92">
+      <rect x="-24" y="-34" width="48" height="72" rx="2" fill="#191310" stroke="#443428" stroke-width="1"/>
+      <rect x="-20" y="-30" width="40" height="64" fill="none" stroke="#6a5034" stroke-width="0.5" opacity="0.4"/>
+      <g transform="translate(0,4)" fill="none" stroke="#9a7a48" opacity="0.62">
+        <circle cx="0" cy="-14" r="6" stroke-width="1.1"/>
+        <path d="M 0,-8 L 0,20 M 0,8 L 7,8 M 0,15 L 5,15" stroke-width="1.1"/>
+      </g>
+      <path d="M -12,26 L 12,26" stroke="#6a5034" stroke-width="0.5" opacity="0.5"/>
+    </g>`;
+
+    const light = `<g pointer-events="none">
+      <ellipse cx="312" cy="344" rx="190" ry="220" fill="url(#pasTorchGlow)" opacity="0.32"/>
+      <ellipse cx="330" cy="510" rx="170" ry="52" fill="url(#pasTorchGlow)" opacity="0.22"/>
+      <rect x="${EL}" y="${ET}" width="${ER - EL}" height="${EB - ET}" fill="url(#pasCold)" opacity="0.16"/>
+      <rect x="366" y="${(EB - 1.5).toFixed(1)}" width="168" height="3" fill="#f0c46a" opacity="0.22"/>
+      <ellipse cx="450" cy="${(EB + 7).toFixed(1)}" rx="82" ry="7" fill="#f0c46a" opacity="0.1"/>
+    </g>`;
+
+    const webs = `<g fill="none" stroke="#8a8090" stroke-width="0.45" opacity="0.12" pointer-events="none">
+      <path d="M 0,0 L 90,0 M 0,0 L 64,64 M 0,0 L 0,90"/>
+      <path d="M 18,0 Q 20,28 0,34 M 36,0 Q 38,18 14,24 M 54,0 Q 54,10 30,16"/>
+      <path d="M 900,0 L 810,0 M 900,0 L 836,64 M 900,0 L 900,90"/>
+      <path d="M 882,0 Q 880,28 900,34 M 864,0 Q 862,18 886,24 M 846,0 Q 846,10 870,16"/>
+    </g>`;
+
+    return `<defs>
+      <linearGradient id="pasCeil" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#07060b"/>
+        <stop offset="1" stop-color="#1a1420"/>
+      </linearGradient>
+      <linearGradient id="pasWallL" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#0b0910"/>
+        <stop offset="0.7" stop-color="#1c1620"/>
+        <stop offset="1" stop-color="#2a2228"/>
+      </linearGradient>
+      <linearGradient id="pasWallR" x1="1" y1="0" x2="0" y2="0">
+        <stop offset="0" stop-color="#0b0910"/>
+        <stop offset="0.7" stop-color="#1c1620"/>
+        <stop offset="1" stop-color="#2a2228"/>
+      </linearGradient>
+      <linearGradient id="pasEnd" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#2a2024"/>
+        <stop offset="0.55" stop-color="#1c1618"/>
+        <stop offset="1" stop-color="#120e10"/>
+      </linearGradient>
+      <linearGradient id="pasFloor" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#1c1612"/>
+        <stop offset="1" stop-color="#080605"/>
+      </linearGradient>
+      <linearGradient id="pasStone" x1="0" y1="0" x2="0.3" y2="1">
+        <stop offset="0" stop-color="#4a3a2c"/>
+        <stop offset="0.55" stop-color="#2e241c"/>
+        <stop offset="1" stop-color="#17120f"/>
+      </linearGradient>
+      <linearGradient id="pasWood" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#24160e"/>
+        <stop offset="1" stop-color="#0e0906"/>
+      </linearGradient>
+      <linearGradient id="pasCarpet" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#4a1a22"/>
+        <stop offset="0.6" stop-color="#351218"/>
+        <stop offset="1" stop-color="#260c11"/>
+      </linearGradient>
+      <radialGradient id="pasTorchGlow" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#ffd89a" stop-opacity="0.55"/>
+        <stop offset="0.35" stop-color="#e8a050" stop-opacity="0.22"/>
+        <stop offset="1" stop-color="#e8a050" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="pasProhibGlow" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#c0a0f0" stop-opacity="0.38"/>
+        <stop offset="0.55" stop-color="#7050a0" stop-opacity="0.14"/>
+        <stop offset="1" stop-color="#4a3070" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="pasNicheDepth" cx="0.5" cy="0.2" r="0.8">
+        <stop offset="0" stop-color="#000" stop-opacity="0.9"/>
+        <stop offset="0.55" stop-color="#050408" stop-opacity="0.55"/>
+        <stop offset="1" stop-color="#0a0810" stop-opacity="0.2"/>
+      </radialGradient>
+      <linearGradient id="pasCold" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#5a7080" stop-opacity="0.26"/>
+        <stop offset="0.6" stop-color="#3a4a58" stop-opacity="0.08"/>
+        <stop offset="1" stop-color="#1a2028" stop-opacity="0"/>
+      </linearGradient>
+      <radialGradient id="pasHaze" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#c8b090" stop-opacity="0.18"/>
+        <stop offset="0.6" stop-color="#9a8068" stop-opacity="0.08"/>
+        <stop offset="1" stop-color="#6a5548" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="pasVig" cx="0.5" cy="0.46" r="0.72">
+        <stop offset="0" stop-color="#000" stop-opacity="0"/>
+        <stop offset="0.62" stop-color="#000" stop-opacity="0"/>
+        <stop offset="1" stop-color="#000" stop-opacity="0.62"/>
+      </radialGradient>
+      <filter id="pasBlur"><feGaussianBlur stdDeviation="3"/></filter>
+    </defs>
+    ${ceiling}
+    ${walls}
+    ${end}
+    ${floor}
+    ${niche('puerta7')}
+    ${niche('p_vieja7')}
+    ${niche('p_roja7')}
+    ${niche('p_prohib7')}
+    ${niche('p_gris7')}
+    ${fixture}
+    ${plaque}
+    ${light}
+    ${webs}`;
+  },
+
   interior: () => `
     <defs>
       <linearGradient id="intSky" x1="0" y1="0" x2="0" y2="1">
@@ -6126,6 +6913,616 @@ const BACKGROUNDS = {
       <line x1="0" y1="580" x2="900" y2="580"/>
     </g>
   `,
+  antesala: () => {
+    // Antesala del Laberinto (hab. 28): camara calida, silenciosa y hostil.
+    const hash = (a, b) => {
+      const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
+      return v - Math.floor(v);
+    };
+    const baseY = 470;
+    const stoneTones = ['#1b1713', '#211b15', '#15110e', '#282019'];
+
+    const stoneBlocks = (x0, y0, w, h, rowH, seed) => {
+      let out = '';
+      let row = 0;
+      for (let y = y0; y < y0 + h; y += rowH) {
+        let x = x0 - (row % 2) * rowH * 0.9;
+        let cell = 0;
+        while (x < x0 + w) {
+          const bw = rowH * (1.5 + hash(seed + row * 1.7, cell + 3) * 2.2);
+          const xa = Math.max(x0, x);
+          const xb = Math.min(x0 + w, x + bw);
+          if (xb - xa > 3) {
+            const tone = stoneTones[Math.floor(hash(seed + row * 3, cell + 9) * 4)];
+            out += `<rect x="${xa.toFixed(1)}" y="${y.toFixed(1)}" width="${(xb - xa - 1).toFixed(1)}" height="${(rowH - 1).toFixed(1)}" fill="${tone}"/>`;
+            out += `<line x1="${(xa + 0.8).toFixed(1)}" y1="${(y + 0.8).toFixed(1)}" x2="${(xb - 1).toFixed(1)}" y2="${(y + 0.8).toFixed(1)}" stroke="#4a3a2c" stroke-width="0.35" opacity="${(0.08 + hash(row, cell) * 0.12).toFixed(2)}"/>`;
+            if (hash(seed + row, cell + 11) > 0.76) {
+              out += `<path d="M ${(xa + (xb - xa) * 0.3).toFixed(1)},${(y + 2).toFixed(1)} l 2,3 l -1,2" fill="none" stroke="#0b0806" stroke-width="0.5" opacity="0.5"/>`;
+            }
+          }
+          x += bw;
+          cell++;
+        }
+        row++;
+      }
+      return out;
+    };
+
+    const niche = (cx, half, spring, apex, seed) => {
+      const out = half + 13;
+      const l = cx - out, r = cx + out;
+      const frame = `M ${l},${baseY} L ${l},${spring} Q ${l},${apex - 12} ${cx},${apex - 12} Q ${r},${apex - 12} ${r},${spring} L ${r},${baseY} Z`;
+      const hole = `M ${cx - half},${baseY} L ${cx - half},${spring} Q ${cx - half},${apex} ${cx},${apex} Q ${cx + half},${apex} ${cx + half},${spring} L ${cx + half},${baseY} Z`;
+      const arch = `M ${l + 1},${baseY} L ${l + 1},${spring} Q ${l + 1},${apex - 10} ${cx},${apex - 10} Q ${r - 1},${apex - 10} ${r - 1},${spring} L ${r - 1},${baseY}`;
+      let g = stoneBlocks(l, Math.max(apex - 26, 210), out * 2, baseY - Math.max(apex - 26, 210), 15, seed);
+      g += `<path d="${frame}" fill="none" stroke="#0b0806" stroke-width="3"/>`;
+      g += `<path d="${hole}" fill="#050405" stroke="#35291f" stroke-width="2.6"/>`;
+      g += `<path d="${hole}" fill="none" stroke="#6a5238" stroke-width="0.7" opacity="0.32"/>`;
+      g += `<path d="${arch}" fill="none" stroke="#8a6c4a" stroke-width="1" opacity="0.25"/>`;
+      g += `<path d="M ${cx - 7},${apex - 2} L ${cx + 7},${apex - 2} L ${cx + 5},${apex - 17} L ${cx - 5},${apex - 17} Z" fill="#2e241a" stroke="#0b0806" stroke-width="0.8"/>`;
+      g += `<path d="M ${cx - 3},${apex - 5} L ${cx + 3},${apex - 5} L ${cx + 2},${apex - 14} L ${cx - 2},${apex - 14} Z" fill="#55412e" opacity="0.55"/>`;
+      g += `<rect x="${cx - out - 4}" y="${baseY - 3}" width="${out * 2 + 8}" height="10" fill="#2b241c" stroke="#0b0806" stroke-width="0.9"/>`;
+      g += `<line x1="${cx - out - 3}" y1="${baseY}" x2="${cx + out + 3}" y2="${baseY}" stroke="#8a7050" stroke-width="0.55" opacity="0.32"/>`;
+      g += `<path d="M ${cx - half},${baseY - 4} L ${cx + half},${baseY - 4}" stroke="#000" stroke-width="3" opacity="0.55"/>`;
+      return g;
+    };
+
+    // Techo abovedado con nervios de piedra y maderos oscuros.
+    let vault = `<rect width="900" height="${210}" fill="url(#antCeilG)"/>`;
+    for (let i = 0; i < 7; i++) {
+      const apex = 68 + i * 19;
+      const c = 2 * apex - 210;
+      vault += `<path d="M 0,210 Q 450,${c.toFixed(1)} 900,210" fill="none" stroke="#070505" stroke-width="${(5.2 - i * 0.45).toFixed(2)}" opacity="0.9"/>`;
+      vault += `<path d="M 0,209 Q 450,${(c - 1).toFixed(1)} 900,209" fill="none" stroke="#3a2c22" stroke-width="0.55" opacity="0.28"/>`;
+    }
+    for (let i = 0; i <= 10; i++) {
+      const x = i * 90;
+      vault += `<path d="M ${x},210 Q ${450 + (x - 450) * 0.5},118 ${450 + (x - 450) * 0.18},78" fill="none" stroke="#080606" stroke-width="0.9" opacity="0.42"/>`;
+    }
+    vault += `<rect y="194" width="900" height="16" fill="#120d0b" opacity="0.72"/>`;
+    vault += `<path d="M 0,210 L 900,210" stroke="#050404" stroke-width="4"/>`;
+    vault += `<path d="M 0,207 L 900,207" stroke="#3a2c22" stroke-width="0.6" opacity="0.24"/>`;
+    // Hollin tenue sobre el hogar.
+    vault += `<ellipse cx="450" cy="190" rx="150" ry="38" fill="#030202" opacity="0.34"/>`;
+    vault += `<ellipse cx="450" cy="196" rx="90" ry="20" fill="#050303" opacity="0.32"/>`;
+
+    // Muro: yeso ahumado, entramado de madera y paneles tallados.
+    let wall = `<rect y="210" width="900" height="260" fill="url(#antWallG)"/>`;
+    wall += `<g stroke="#0b0807" stroke-width="6" opacity="0.9">
+      <line x1="76" y1="210" x2="76" y2="470"/>
+      <line x1="340" y1="210" x2="340" y2="470"/>
+      <line x1="560" y1="210" x2="560" y2="470"/>
+      <line x1="828" y1="210" x2="828" y2="470"/>
+    </g>`;
+    wall += `<g stroke="#4a3424" stroke-width="0.8" opacity="0.28">
+      <line x1="82" y1="210" x2="82" y2="470"/>
+      <line x1="346" y1="210" x2="346" y2="470"/>
+      <line x1="566" y1="210" x2="566" y2="470"/>
+      <line x1="834" y1="210" x2="834" y2="470"/>
+    </g>`;
+    for (let i = 0; i < 6; i++) {
+      const y = 238 + i * 17;
+      wall += `<path d="M 80,${y} Q 450,${y + (i % 2 ? 3 : -2)} 826,${y}" fill="none" stroke="#080605" stroke-width="0.35" opacity="0.28"/>`;
+    }
+    // Grietas y humedad de esquina.
+    wall += `<g fill="none" stroke="#090706" stroke-width="0.8" opacity="0.48">
+      <path d="M 104,214 L 98,250 L 106,266 L 99,294"/>
+      <path d="M 798,222 L 806,252 L 798,268"/>
+      <path d="M 436,214 L 430,236 L 439,252"/>
+    </g>`;
+    wall += `<g fill="#060505" opacity="0.22">
+      <ellipse cx="124" cy="226" rx="38" ry="12"/>
+      <ellipse cx="794" cy="236" rx="26" ry="10"/>
+    </g>`;
+    // Zocalo de madera y paneles con moldura dorada apagada.
+    wall += `<rect y="338" width="900" height="132" fill="url(#antWoodG)"/>`;
+    wall += `<rect y="334" width="900" height="8" fill="#3b2819" opacity="0.92"/>`;
+    wall += `<rect y="338" width="900" height="2" fill="#7a5834" opacity="0.32"/>`;
+    for (let i = 0; i < 9; i++) {
+      const px = 86 + i * 82;
+      wall += `<rect x="${px + 5}" y="354" width="70" height="96" rx="2" fill="#1a100c" opacity="0.58" stroke="#050403" stroke-width="1.2"/>`;
+      wall += `<rect x="${px + 9}" y="358" width="62" height="88" rx="1" fill="none" stroke="#4a3220" stroke-width="0.7" opacity="0.5"/>`;
+      wall += `<path d="M ${px + 16},430 L ${px + 64},430 M ${px + 16},436 L ${px + 64},436" stroke="#6a4a2c" stroke-width="0.5" opacity="0.24"/>`;
+      wall += `<circle cx="${px + 40}" cy="380" r="3" fill="#5a4028" opacity="0.38"/>`;
+    }
+    wall += `<rect y="452" width="900" height="18" fill="#0a0705"/>`;
+    wall += `<rect y="452" width="900" height="2" fill="#4a3220" opacity="0.34"/>`;
+
+    // Suelo de losas en fuga, calido junto al hogar.
+    let floor = '';
+    const vpX = 450, vpY = 120;
+    const rows = [470, 487, 509, 538, 573, 600];
+    const cols = [0, 112.5, 225, 337.5, 450, 562.5, 675, 787.5, 900];
+    const kAt = y => (y - vpY) / (470 - vpY);
+    for (let b = 0; b < rows.length - 1; b++) {
+      const y0 = rows[b], y1 = rows[b + 1];
+      const k0 = kAt(y0), k1 = kAt(y1);
+      for (let j = 0; j < cols.length - 1; j++) {
+        const gx0 = cols[j], gx1 = cols[j + 1];
+        const x00 = vpX + (gx0 - vpX) * k0;
+        const x01 = vpX + (gx1 - vpX) * k0;
+        const x10 = vpX + (gx0 - vpX) * k1;
+        const x11 = vpX + (gx1 - vpX) * k1;
+        const tone = (b + j) % 2 ? '#18120e' : '#1e1712';
+        floor += `<polygon points="${x00.toFixed(1)},${y0} ${x01.toFixed(1)},${y0} ${x11.toFixed(1)},${y1} ${x10.toFixed(1)},${y1}" fill="${tone}"/>`;
+        floor += `<polygon points="${x00.toFixed(1)},${y0} ${x01.toFixed(1)},${y0} ${x11.toFixed(1)},${y1} ${x10.toFixed(1)},${y1}" fill="none" stroke="#070504" stroke-width="${(0.45 + b * 0.18).toFixed(2)}" opacity="0.8"/>`;
+        if (hash(b + 3, j + 7) > 0.55) {
+          const gy = y0 + (y1 - y0) * (0.25 + hash(b, j + 2) * 0.5);
+          const gx = vpX + ((gx0 + gx1) / 2 - vpX) * kAt(gy);
+          floor += `<ellipse cx="${gx.toFixed(1)}" cy="${gy.toFixed(1)}" rx="${(4 + hash(b, j) * 9).toFixed(1)}" ry="${(1 + hash(j, b) * 1.8).toFixed(1)}" fill="#0b0806" opacity="0.2"/>`;
+        }
+        floor += `<line x1="${x00.toFixed(1)}" y1="${(y0 + 0.8).toFixed(1)}" x2="${x01.toFixed(1)}" y2="${(y0 + 0.8).toFixed(1)}" stroke="#6a5034" stroke-width="0.35" opacity="0.1"/>`;
+      }
+    }
+    floor += `<rect y="470" width="900" height="9" fill="#040302" opacity="0.62"/>`;
+    floor += `<ellipse cx="450" cy="526" rx="280" ry="58" fill="url(#antFirePool)" opacity="0.8"/>`;
+    floor += `<ellipse cx="816" cy="490" rx="88" ry="26" fill="url(#antCoolPool)" opacity="0.9"/>`;
+
+    const niches = niche(145, 56, 360, 302, 7)
+                 + niche(657, 56, 360, 302, 13)
+                 + niche(816, 44, 367, 325, 21);
+
+    // Hogar central de piedra oscura: el unico calor de la estancia.
+    let fire = stoneBlocks(338, 294, 224, 176, 16, 31);
+    fire += `<rect x="330" y="286" width="240" height="18" rx="2" fill="#2c241a" stroke="#080605" stroke-width="1.4"/>`;
+    fire += `<rect x="334" y="289" width="232" height="4" fill="#6a5236" opacity="0.35"/>`;
+    fire += stoneBlocks(382, 210, 136, 78, 14, 37);
+    fire += `<rect x="376" y="272" width="148" height="7" fill="#352a1e" opacity="0.8"/>`;
+    fire += `<path d="M 386,470 L 386,394 Q 386,358 450,358 Q 514,358 514,394 L 514,470 Z" fill="#040303" stroke="#0b0806" stroke-width="2"/>`;
+    fire += `<path d="M 390,470 L 390,396 Q 390,362 450,362 Q 510,362 510,396 L 510,470" fill="none" stroke="#6a4d32" stroke-width="1.1" opacity="0.35"/>`;
+    fire += `<path d="M 398,470 L 398,400 Q 398,370 450,370 Q 502,370 502,400 L 502,470" fill="url(#antFireMouth)" opacity="0.9"/>`;
+    // Medallon laberintico tallado en la campana.
+    fire += `<g transform="translate(450,241)" fill="none" stroke="#7a5c3a" opacity="0.38">
+      <circle r="25" stroke-width="1.2"/>
+      <circle r="18" stroke-width="0.7"/>
+      <path d="M -18,4 L -8,4 L -8,-8 L 8,-8 L 8,8 L -2,8 L -2,0 L 3,0 L 3,3" stroke-width="1"/>
+      <path d="M 0,-25 L 0,-18 M 0,18 L 0,25 M -25,0 L -18,0 M 18,0 L 25,0" stroke-width="0.7"/>
+    </g>`;
+    fire += `<g>
+      <ellipse cx="450" cy="448" rx="58" ry="10" fill="#000" opacity="0.6"/>
+      <ellipse cx="450" cy="420" rx="92" ry="74" fill="url(#antFireGlow)" opacity="0.92">
+        <animate attributeName="opacity" values="0.76;0.96;0.82;0.92;0.76" dur="2.0s" repeatCount="indefinite"/>
+        <animate attributeName="ry" values="72;77;73;76;72" dur="2.5s" repeatCount="indefinite"/>
+      </ellipse>
+      <!-- leños y brasas -->
+      <ellipse cx="450" cy="460" rx="38" ry="7" fill="#3a1406" opacity="0.8"/>
+      <path d="M 413,464 Q 424,452 438,458 Q 450,449 462,458 Q 476,451 487,464 Z" fill="#2a1710" stroke="#0a0604" stroke-width="0.9"/>
+      <path d="M 416,462 L 456,455" stroke="#3a2012" stroke-width="5.5" stroke-linecap="round"/>
+      <path d="M 446,461 L 486,458" stroke="#331b0f" stroke-width="5" stroke-linecap="round"/>
+      <path d="M 422,457 Q 438,450 450,455 Q 464,449 480,458" fill="none" stroke="#6a3c1e" stroke-width="1.4" opacity="0.7"/>
+      <g fill="#f0a050" opacity="0.8">
+        <ellipse cx="438" cy="459" rx="6" ry="1.6"/>
+        <ellipse cx="460" cy="460" rx="5" ry="1.4"/>
+        <ellipse cx="449" cy="462" rx="8" ry="1.8"/>
+      </g>
+      <!-- tres lenguas traseras, rojo-naranja, con vaivén.
+           El grupo escala al 70 % alrededor de la base del fuego: las llamas
+           son un 30 % más pequeñas sin mover brasas ni resplandor. -->
+      <g transform="translate(450,459) scale(0.7) translate(-450,-459)">
+        <animate attributeName="opacity" values="1;0.9;1;0.94;1" dur="0.85s" repeatCount="indefinite"/>
+      <g fill="#a83808" opacity="0.82">
+        <path d="M 420,458 C 404,444 408,416 415,399 C 418,393 420,389 422,385 C 424,392 430,401 434,412 C 442,432 442,450 420,458 Z">
+          <animate attributeName="d" dur="1.9s" begin="-0.4s" repeatCount="indefinite"
+            values="M 420,458 C 404,444 408,416 415,399 C 418,393 420,389 422,385 C 424,392 430,401 434,412 C 442,432 442,450 420,458 Z;
+                    M 420,458 C 400,446 405,418 413,401 C 416,395 419,391 421,387 C 425,394 431,404 435,415 C 443,434 444,450 420,458 Z;
+                    M 420,458 C 407,447 411,421 418,404 C 421,398 422,395 423,391 C 425,397 430,405 433,415 C 440,433 440,450 420,458 Z;
+                    M 420,458 C 404,444 408,416 415,399 C 418,393 420,389 422,385 C 424,392 430,401 434,412 C 442,432 442,450 420,458 Z"/>
+        </path>
+        <path d="M 450,459 C 426,438 434,404 443,387 C 446,381 448,377 450,371 C 452,377 456,385 460,394 C 470,412 474,438 450,459 Z">
+          <animate attributeName="d" dur="1.65s" repeatCount="indefinite"
+            values="M 450,459 C 426,438 434,404 443,387 C 446,381 448,377 450,371 C 452,377 456,385 460,394 C 470,412 474,438 450,459 Z;
+                    M 450,459 C 420,442 430,402 440,385 C 444,379 447,374 449,367 C 453,374 457,383 461,393 C 472,412 476,440 450,459 Z;
+                    M 450,459 C 430,440 438,406 446,391 C 449,385 451,381 452,375 C 454,382 458,390 461,398 C 469,416 472,438 450,459 Z;
+                    M 450,459 C 426,438 434,404 443,387 C 446,381 448,377 450,371 C 452,377 456,385 460,394 C 470,412 474,438 450,459 Z"/>
+        </path>
+        <path d="M 480,458 C 464,444 468,416 475,399 C 478,393 480,389 482,385 C 484,392 490,401 494,412 C 502,432 502,450 480,458 Z">
+          <animate attributeName="d" dur="2.1s" begin="-1.3s" repeatCount="indefinite"
+            values="M 480,458 C 464,444 468,416 475,399 C 478,393 480,389 482,385 C 484,392 490,401 494,412 C 502,432 502,450 480,458 Z;
+                    M 480,458 C 468,446 471,420 478,403 C 481,397 483,393 484,389 C 487,396 492,406 496,416 C 503,434 502,450 480,458 Z;
+                    M 480,458 C 466,446 470,422 476,407 C 479,401 481,397 483,393 C 485,399 490,407 493,416 C 500,433 500,450 480,458 Z;
+                    M 480,458 C 464,444 468,416 475,399 C 478,393 480,389 482,385 C 484,392 490,401 494,412 C 502,432 502,450 480,458 Z"/>
+        </path>
+      </g>
+      <!-- lenguas medias, naranja vivo -->
+      <g fill="#e8781c" opacity="0.94">
+        <path d="M 433,458 C 421,447 424,428 429,415 C 431,409 432,405 434,400 C 436,407 439,414 442,423 C 447,437 447,451 433,458 Z">
+          <animate attributeName="d" dur="1.25s" begin="-0.7s" repeatCount="indefinite"
+            values="M 433,458 C 421,447 424,428 429,415 C 431,409 432,405 434,400 C 436,407 439,414 442,423 C 447,437 447,451 433,458 Z;
+                    M 433,458 C 418,448 422,427 427,412 C 429,406 431,402 433,397 C 436,404 440,412 443,422 C 449,438 448,451 433,458 Z;
+                    M 433,458 C 423,449 426,432 431,419 C 433,413 434,409 435,405 C 437,411 440,417 442,425 C 446,437 446,452 433,458 Z;
+                    M 433,458 C 421,447 424,428 429,415 C 431,409 432,405 434,400 C 436,407 439,414 442,423 C 447,437 447,451 433,458 Z"/>
+        </path>
+        <path d="M 455,458 C 440,444 445,418 450,403 C 452,397 453,393 455,388 C 457,394 461,401 464,410 C 470,428 472,448 455,458 Z">
+          <animate attributeName="d" dur="1.1s" repeatCount="indefinite"
+            values="M 455,458 C 440,444 445,418 450,403 C 452,397 453,393 455,388 C 457,394 461,401 464,410 C 470,428 472,448 455,458 Z;
+                    M 455,458 C 436,445 442,416 448,401 C 450,395 452,391 454,385 C 457,392 462,400 465,409 C 472,428 474,449 455,458 Z;
+                    M 455,458 C 444,446 448,422 452,408 C 454,402 454,398 455,394 C 458,400 461,407 464,415 C 469,431 470,449 455,458 Z;
+                    M 455,458 C 440,444 445,418 450,403 C 452,397 453,393 455,388 C 457,394 461,401 464,410 C 470,428 472,448 455,458 Z"/>
+        </path>
+        <path d="M 474,458 C 463,449 466,432 470,421 C 472,415 473,411 474,407 C 476,413 479,419 481,426 C 485,438 485,451 474,458 Z">
+          <animate attributeName="d" dur="1.4s" begin="-1.1s" repeatCount="indefinite"
+            values="M 474,458 C 463,449 466,432 470,421 C 472,415 473,411 474,407 C 476,413 479,419 481,426 C 485,438 485,451 474,458 Z;
+                    M 474,458 C 461,449 464,429 469,418 C 471,412 472,408 474,403 C 477,410 480,417 482,424 C 487,438 486,451 474,458 Z;
+                    M 474,458 C 465,450 468,435 471,425 C 473,419 474,415 475,411 C 477,417 480,423 482,429 C 485,440 484,452 474,458 Z;
+                    M 474,458 C 463,449 466,432 470,421 C 472,415 473,411 474,407 C 476,413 479,419 481,426 C 485,438 485,451 474,458 Z"/>
+        </path>
+      </g>
+      <!-- corazones amarillos: tres puntas que se mecen más rápido -->
+      <g fill="#ffc45a">
+        <path d="M 432,455 C 424,446 426,434 429,426 C 430,422 431,420 432,417 C 433,422 436,427 438,432 C 442,441 441,450 432,455 Z">
+          <animate attributeName="d" dur="0.8s" begin="-0.3s" repeatCount="indefinite"
+            values="M 432,455 C 424,446 426,434 429,426 C 430,422 431,420 432,417 C 433,422 436,427 438,432 C 442,441 441,450 432,455 Z;
+                    M 432,455 C 422,447 425,433 428,424 C 429,420 430,418 431,415 C 433,420 437,426 439,431 C 443,441 441,451 432,455 Z;
+                    M 432,455 C 425,448 427,437 430,429 C 431,425 431,423 432,420 C 434,425 436,429 438,434 C 441,442 440,451 432,455 Z;
+                    M 432,455 C 424,446 426,434 429,426 C 430,422 431,420 432,417 C 433,422 436,427 438,432 C 442,441 441,450 432,455 Z"/>
+        </path>
+        <path d="M 450,455 C 441,445 444,429 447,419 C 448,415 449,413 450,410 C 451,415 455,421 457,427 C 461,438 461,448 450,455 Z">
+          <animate attributeName="d" dur="0.95s" repeatCount="indefinite"
+            values="M 450,455 C 441,445 444,429 447,419 C 448,415 449,413 450,410 C 451,415 455,421 457,427 C 461,438 461,448 450,455 Z;
+                    M 450,455 C 438,446 442,427 446,417 C 447,413 448,410 449,407 C 452,413 456,420 458,426 C 463,438 462,448 450,455 Z;
+                    M 450,455 C 443,447 445,433 448,423 C 449,419 450,417 450,414 C 452,419 455,425 457,431 C 460,440 459,449 450,455 Z;
+                    M 450,455 C 441,445 444,429 447,419 C 448,415 449,413 450,410 C 451,415 455,421 457,427 C 461,438 461,448 450,455 Z"/>
+        </path>
+        <path d="M 471,455 C 463,447 465,434 468,426 C 469,422 470,420 471,417 C 472,422 475,427 477,432 C 481,441 480,451 471,455 Z">
+          <animate attributeName="d" dur="1.0s" begin="-0.9s" repeatCount="indefinite"
+            values="M 471,455 C 463,447 465,434 468,426 C 469,422 470,420 471,417 C 472,422 475,427 477,432 C 481,441 480,451 471,455 Z;
+                    M 471,455 C 461,448 464,433 467,424 C 468,420 469,418 470,415 C 472,420 476,426 478,431 C 482,441 481,451 471,455 Z;
+                    M 471,455 C 465,449 467,437 469,429 C 470,425 470,423 471,420 C 473,425 475,429 477,434 C 480,442 479,451 471,455 Z;
+                    M 471,455 C 463,447 465,434 468,426 C 469,422 470,420 471,417 C 472,422 475,427 477,432 C 481,441 480,451 471,455 Z"/>
+        </path>
+      </g>
+      <!-- núcleo blanco -->
+      <path d="M 450,451 C 445,445 447,436 449,430 C 450,427 450,425 450,423 C 451,426 454,431 455,435 C 458,443 457,449 450,451 Z"
+            fill="#fff0c0" opacity="0.9">
+        <animate attributeName="d" dur="0.7s" begin="-0.2s" repeatCount="indefinite"
+          values="M 450,451 C 445,445 447,436 449,430 C 450,427 450,425 450,423 C 451,426 454,431 455,435 C 458,443 457,449 450,451 Z;
+                  M 450,451 C 444,446 446,434 448,428 C 449,425 449,422 450,420 C 452,424 455,430 456,434 C 459,443 457,449 450,451 Z;
+                  M 450,451 C 446,446 448,438 449,433 C 450,430 450,428 450,426 C 452,429 454,433 455,437 C 457,444 456,449 450,451 Z;
+                  M 450,451 C 445,445 447,436 449,430 C 450,427 450,425 450,423 C 451,426 454,431 455,435 C 458,443 457,449 450,451 Z"/>
+      </path>
+      </g>
+      <g fill="#f0a050">
+        <circle cx="426" cy="438" r="1.2" opacity="0">
+          <animate attributeName="cy" values="438;378" dur="2.5s" repeatCount="indefinite"/>
+          <animate attributeName="cx" values="426;420;428" dur="2.5s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.7;0" dur="2.5s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="446" cy="442" r="0.9" opacity="0">
+          <animate attributeName="cy" values="442;386" dur="3.3s" begin="-1.2s" repeatCount="indefinite"/>
+          <animate attributeName="cx" values="446;452;444" dur="3.3s" begin="-1.2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.55;0" dur="3.3s" begin="-1.2s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="462" cy="440" r="1" opacity="0">
+          <animate attributeName="cy" values="440;372" dur="3.8s" begin="-2.8s" repeatCount="indefinite"/>
+          <animate attributeName="cx" values="462;468;460" dur="3.8s" begin="-2.8s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.6;0" dur="3.8s" begin="-2.8s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="472" cy="446" r="0.8" opacity="0">
+          <animate attributeName="cy" values="446;396" dur="2.9s" begin="-0.7s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.45;0" dur="2.9s" begin="-0.7s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="436" cy="446" r="0.7" opacity="0">
+          <animate attributeName="cy" values="446;402" dur="3.6s" begin="-3.5s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.4;0" dur="3.6s" begin="-3.5s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="450" cy="436" r="0.9" opacity="0">
+          <animate attributeName="cy" values="436;356" dur="4.2s" begin="-1.9s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.5;0" dur="4.2s" begin="-1.9s" repeatCount="indefinite"/>
+        </circle>
+      </g>
+      <ellipse cx="450" cy="384" rx="36" ry="24" fill="url(#antSmoke)" opacity="0.5">
+        <animate attributeName="opacity" values="0.2;0.42;0.24;0.38;0.2" dur="4.8s" repeatCount="indefinite"/>
+        <animate attributeName="cx" values="448;456;446;452;448" dur="6.9s" repeatCount="indefinite"/>
+      </ellipse>
+    </g>`;
+    fire += `<path d="M 344,468 L 556,468" stroke="#090605" stroke-width="3" opacity="0.7"/>`;
+
+    // Alfombra mullida, con greca y medallon de laberinto.
+    let rug = `<path d="M 214,492 L 686,492 L 738,585 L 162,585 Z" fill="#1c090b" stroke="#090405" stroke-width="2"/>`;
+    rug += `<path d="M 226,500 L 674,500 L 716,575 L 184,575 Z" fill="#381116" stroke="#6a3a2a" stroke-width="1"/>`;
+    rug += `<path d="M 238,507 L 662,507 L 697,565 L 203,565 Z" fill="none" stroke="#8a5a30" stroke-width="1.1" opacity="0.5"/>`;
+    rug += `<path d="M 250,514 L 650,514 L 679,555 L 221,555 Z" fill="url(#antRugMaze)" opacity="0.55"/>`;
+    rug += `<g fill="none" stroke="#b08048" opacity="0.36">
+      <ellipse cx="450" cy="538" rx="62" ry="17" stroke-width="1"/>
+      <ellipse cx="450" cy="538" rx="45" ry="11" stroke-width="0.6"/>
+      <path d="M 405,538 L 420,538 L 420,530 L 436,530 L 436,546 L 464,546 L 464,530 L 480,530 L 480,538 L 495,538" stroke-width="0.8"/>
+    </g>`;
+    for (let i = 0; i < 20; i++) {
+      const x = 176 + i * 27.2;
+      rug += `<line x1="${x.toFixed(1)}" y1="585" x2="${(x - 3).toFixed(1)}" y2="594" stroke="#6a4a30" stroke-width="0.7" opacity="0.45"/>`;
+    }
+
+    // Reguero de sangre desde el umbral de la puerta verde hasta Dédalo.
+    let bloodTrail = `<g pointer-events="none">
+      <g fill="#6a0a12" stroke="#2a0206" stroke-width="0.6" opacity="0.9">
+        <ellipse cx="650" cy="482" rx="2.2" ry="1.1"/>
+        <ellipse cx="641" cy="489" rx="1.4" ry="0.8"/>
+        <path d="M 632,494 Q 628,497 630,500 Q 634,501 636,497 Z"/>
+        <ellipse cx="621" cy="506" rx="2.6" ry="1.2"/>
+        <ellipse cx="611" cy="513" rx="1.2" ry="0.7"/>
+        <path d="M 602,518 Q 597,521 599,524 Q 603,525 605,521 Z"/>
+        <ellipse cx="590" cy="528" rx="2" ry="1"/>
+        <ellipse cx="581" cy="532" rx="1.1" ry="0.6"/>
+        <ellipse cx="573" cy="536" rx="1.7" ry="0.9"/>
+        <ellipse cx="565" cy="539" rx="1.2" ry="0.7"/>
+        <ellipse cx="558" cy="542" rx="2" ry="1"/>
+      </g>
+      <g fill="#a81820" opacity="0.5">
+        <ellipse cx="649.4" cy="481.6" rx="0.7" ry="0.3"/>
+        <ellipse cx="620.4" cy="505.4" rx="1.1" ry="0.4"/>
+        <ellipse cx="589.4" cy="527.4" rx="0.8" ry="0.32"/>
+        <ellipse cx="557.4" cy="541.4" rx="0.9" ry="0.35"/>
+      </g>
+      <g fill="#5a0810" opacity="0.6">
+        <circle cx="646" cy="486" r="0.6"/>
+        <circle cx="636" cy="493" r="0.5"/>
+        <circle cx="626" cy="501" r="0.7"/>
+        <circle cx="616" cy="509" r="0.5"/>
+        <circle cx="605" cy="516" r="0.6"/>
+        <circle cx="594" cy="524" r="0.5"/>
+        <circle cx="583" cy="530" r="0.7"/>
+        <circle cx="571" cy="536" r="0.5"/>
+        <circle cx="560" cy="540" r="0.6"/>
+      </g>
+    </g>`;
+
+    // Tapiz del laberinto: comodidad de casa noble, amenaza de mito.
+    let tapestry = `<g transform="translate(272,232)">
+      <rect x="-64" y="-4" width="128" height="5" rx="2" fill="#24170f" stroke="#080504" stroke-width="0.8"/>
+      <circle cx="-56" cy="-2" r="2.2" fill="none" stroke="#6a5030" stroke-width="0.8"/>
+      <circle cx="56" cy="-2" r="2.2" fill="none" stroke="#6a5030" stroke-width="0.8"/>
+      <path d="M -57,2 L -51,160 Q -38,154 -26,161 Q -13,168 0,160 Q 13,153 26,161 Q 38,168 51,160 L 57,2 Z" fill="url(#antClothG)" stroke="#0d0505" stroke-width="1.2"/>
+      <path d="M -51,8 L -46,154 M -25,6 L -22,158 M 0,5 L 0,160 M 25,6 L 22,158 M 51,8 L 46,154" stroke="#170709" stroke-width="1" opacity="0.55" fill="none"/>
+      <path d="M -45,12 L 45,12 L 40,148 L -40,148 Z" fill="none" stroke="#8a6034" stroke-width="1.2" opacity="0.5"/>
+      <g transform="translate(0,84)" fill="none" stroke="#b08248" opacity="0.56">
+        <circle r="42" stroke-width="1"/>
+        <path d="M -36,4 L -20,4 L -20,-12 L 8,-12 L 8,10 L -6,10 L -6,-2 L 1,-2 L 1,3" stroke-width="1.1"/>
+        <path d="M 20,-30 Q 36,-18 30,4 Q 26,18 10,26" stroke-width="0.8"/>
+      </g>
+      <g transform="translate(0,70)" fill="#0c0507" opacity="0.55">
+        <path d="M -13,-6 Q -22,-16 -34,-18 Q -26,-8 -20,2 Z"/>
+        <path d="M 13,-6 Q 22,-16 34,-18 Q 26,-8 20,2 Z"/>
+        <path d="M -10,0 Q 0,-8 10,0 L 6,12 L -6,12 Z"/>
+        <circle cx="-4" cy="3" r="1.2" fill="#b06038" opacity="0.7"/>
+        <circle cx="4" cy="3" r="1.2" fill="#b06038" opacity="0.7"/>
+      </g>
+      <path d="M -51,160 Q -38,154 -26,161 Q -13,168 0,160 Q 13,153 26,161 Q 38,168 51,160" fill="none" stroke="#8a5a30" stroke-width="0.6" opacity="0.26"/>
+    </g>`;
+    tapestry += `<g transform="translate(584,238)" opacity="0.8">
+      <rect x="-19" y="-3" width="38" height="4" fill="#24170f"/>
+      <path d="M -16,2 L -12,96 Q 0,101 12,96 L 16,2 Z" fill="#2a0a10" stroke="#0b0406" stroke-width="0.8"/>
+      <path d="M -8,10 L -5,88 M 4,10 L 6,88" stroke="#0d0406" stroke-width="0.7" opacity="0.6"/>
+      <path d="M 0,36 L 7,50 L 0,64 L -7,50 Z" fill="none" stroke="#8a5a30" stroke-width="0.8" opacity="0.44"/>
+    </g>`;
+
+    // Candil de hierro: cadenas, aro calado y cinco velas.
+    let chandelier = `<g transform="translate(450,0)">
+      <ellipse cx="0" cy="0" rx="8" ry="3" fill="#2a2018" stroke="#0a0705" stroke-width="0.8"/>
+      <ellipse cx="0" cy="0" rx="3.4" ry="1.3" fill="#7a5c38" opacity="0.6"/>
+      <path d="M -5,2 L -50,139 M 5,2 L 50,139" stroke="#241a12" stroke-width="1.7"/>
+      <path d="M -5,2 L -50,139 M 5,2 L 50,139" stroke="#9a7448" stroke-width="0.45" opacity="0.45" stroke-dasharray="2 3.4"/>
+      <line x1="0" y1="0" x2="0" y2="130" stroke="#2a2018" stroke-width="2"/>
+      <line x1="-0.8" y1="4" x2="-0.8" y2="128" stroke="#9a7648" stroke-width="0.5" opacity="0.4"/>
+      <g transform="translate(0,36)">
+      <path d="M 0,92 L 0,110" stroke="#1a120c" stroke-width="2.6"/>
+      <ellipse cx="0" cy="108" rx="108" ry="42" fill="url(#antChandGlow)" opacity="0.7"/>
+      <!-- aro exterior con filo y sombra -->
+      <ellipse cx="0" cy="114" rx="66" ry="14" fill="none" stroke="#4a3622" stroke-width="4.6"/>
+      <ellipse cx="0" cy="112.6" rx="66" ry="14" fill="none" stroke="#a8824e" stroke-width="0.9" opacity="0.55"/>
+      <ellipse cx="0" cy="116.4" rx="66" ry="14" fill="none" stroke="#0a0705" stroke-width="1.1" opacity="0.7"/>
+      <ellipse cx="0" cy="114" rx="58" ry="11" fill="none" stroke="#332418" stroke-width="1.1" opacity="0.8"/>
+      <!-- radios y volutas -->
+      <g fill="none" stroke="#3a2a1a" stroke-width="1">
+        <path d="M -66,112 Q -38,120 0,111 Q 38,120 66,112"/>
+        <path d="M -66,115 Q -38,124 0,114 Q 38,124 66,115"/>
+      </g>
+      <g fill="none" stroke="#8a6a40" stroke-width="0.6" opacity="0.42">
+        <path d="M -66,112 Q -38,120 0,111 Q 38,120 66,112"/>
+      </g>
+      <!-- pinjantes bajo el aro -->
+      <g stroke="#3a2a1a" stroke-width="0.9">
+        <path d="M -39,122 L -39,127 M 39,122 L 39,127 M -13,127 L -13,131 M 13,127 L 13,131"/>
+      </g>
+      <g fill="#6a5030" opacity="0.65">
+        <circle cx="-39" cy="128.4" r="1.7"/><circle cx="39" cy="128.4" r="1.7"/>
+        <circle cx="-13" cy="132.4" r="1.5"/><circle cx="13" cy="132.4" r="1.5"/>
+      </g>
+      <!-- cinco velas sobre el aro -->
+      ${[-52, -26, 0, 26, 52].map((x, i) => {
+        const y = 113 - 14 * Math.sqrt(Math.max(0, 1 - Math.pow(x / 66, 2)));
+        return `<g transform="translate(${x},${y.toFixed(1)})">
+          <ellipse cx="0" cy="1.6" rx="6.6" ry="2.7" fill="#241812" stroke="#0a0705" stroke-width="0.6"/>
+          <ellipse cx="0" cy="0.5" rx="5.2" ry="1.9" fill="#3c2a1c"/>
+          <rect x="-2" y="-21" width="4" height="21" rx="1" fill="#e2d2aa" opacity="0.82"/>
+          <rect x="-2" y="-21" width="1.4" height="21" fill="#f6ecc8" opacity="0.35"/>
+          <path d="M -2,-4 Q -2.6,3 -1.6,4 L -1.4,0 Z M 2,-8 Q 2.6,-2 1.8,-1 L 1.4,-5 Z" fill="#f0e0b4" opacity="0.55"/>
+          <path d="M 0,-32 Q -5.5,-25 0,-19 Q 5.5,-25 0,-32 Z" fill="#f0b050">
+            <animate attributeName="opacity" values="0.62;1;0.72;0.94;0.62" dur="${(1.5 + i * 0.13).toFixed(2)}s" begin="-${(i * 0.31).toFixed(2)}s" repeatCount="indefinite"/>
+            <animate attributeName="d"
+              values="M 0,-32 Q -5.5,-25 0,-19 Q 5.5,-25 0,-32 Z;
+                      M 0,-34 Q -4.4,-26 0,-19 Q 4.6,-27 0,-34 Z;
+                      M 0,-31 Q -5.8,-25 0,-19 Q 5.2,-24 0,-31 Z;
+                      M 0,-32 Q -5.5,-25 0,-19 Q 5.5,-25 0,-32 Z"
+              dur="${(1.9 + i * 0.11).toFixed(2)}s" repeatCount="indefinite"/>
+          </path>
+          <path d="M 0,-26 Q -2,-23 0,-21 Q 2,-23 0,-26 Z" fill="#ffe8b0" opacity="0.8"/>
+          <circle cx="0" cy="-23" r="9" fill="url(#antCandleGlow)" opacity="0.5"/>
+        </g>`;
+      }).join('')}
+      </g>
+    </g>`;
+
+    // Sillon de orejas junto al fuego: respaldo capitone, alas, brazos y tachuelas.
+    let chair = `<g transform="translate(337,470)">
+      <ellipse cx="0" cy="67" rx="56" ry="9" fill="#000" opacity="0.5"/>
+      <ellipse cx="2" cy="64" rx="40" ry="5" fill="#120805" opacity="0.55"/>
+      <!-- patas de madera -->
+      <path d="M -38,44 L -42,65 L -34,66 L -30,44 Z" fill="#2a150c" stroke="#080403" stroke-width="0.9"/>
+      <path d="M 38,44 L 42,65 L 34,66 L 30,44 Z" fill="#2a150c" stroke="#080403" stroke-width="0.9"/>
+      <path d="M -20,48 L -22,63 L -16,63 L -14,48 Z" fill="#1c0e07"/>
+      <path d="M 20,48 L 22,63 L 16,63 L 14,48 Z" fill="#1c0e07"/>
+      <!-- respaldo exterior -->
+      <path d="M -40,46 Q -46,-16 -36,-44 Q -26,-62 0,-63 Q 26,-62 36,-44 Q 46,-16 40,46 Z" fill="#34170f" stroke="#080403" stroke-width="1.4"/>
+      <!-- alas / orejas que abrazan -->
+      <path d="M -39,-40 Q -58,-36 -60,-10 Q -61,10 -46,17 L -38,12 Z" fill="#3e1c12" stroke="#080403" stroke-width="1.2"/>
+      <path d="M 39,-40 Q 58,-36 60,-10 Q 61,10 46,17 L 38,12 Z" fill="#3e1c12" stroke="#080403" stroke-width="1.2"/>
+      <path d="M -41,-36 Q -55,-31 -56,-9 Q -56,7 -45,13" fill="none" stroke="#7a4028" stroke-width="1" opacity="0.55"/>
+      <path d="M 41,-36 Q 55,-31 56,-9 Q 56,7 45,13" fill="none" stroke="#7a4028" stroke-width="1" opacity="0.55"/>
+      <!-- acolchado interior -->
+      <path d="M -32,42 Q -37,-14 -29,-40 Q -20,-54 0,-55 Q 20,-54 29,-40 Q 37,-14 32,42 Z" fill="#54281c" stroke="#1a0a05" stroke-width="0.8"/>
+      <!-- capitone: rombos y botones -->
+      <g fill="none" stroke="#3a170f" stroke-width="0.7" opacity="0.6">
+        <path d="M -24,-36 Q 0,-27 24,-36"/>
+        <path d="M -28,-18 Q 0,-9 28,-18"/>
+        <path d="M -30,0 Q 0,9 30,0"/>
+        <path d="M -30,18 Q 0,27 30,18"/>
+        <path d="M -16,-48 Q -12,-18 -18,8 M 16,-48 Q 12,-18 18,8 M 0,-52 L 0,26"/>
+      </g>
+      <g fill="#a86a40" opacity="0.7">
+        <circle cx="-15" cy="-33" r="1.3"/><circle cx="15" cy="-33" r="1.3"/>
+        <circle cx="0" cy="-22" r="1.3"/>
+        <circle cx="-17" cy="-8" r="1.3"/><circle cx="17" cy="-8" r="1.3"/>
+        <circle cx="0" cy="5" r="1.2"/>
+        <circle cx="-13" cy="22" r="1.1"/><circle cx="13" cy="22" r="1.1"/>
+      </g>
+      <!-- brazos mullidos con voluta -->
+      <path d="M -41,-18 Q -56,-18 -57,-2 Q -57,12 -44,14 L -34,12 L -34,-6 Z" fill="#482116" stroke="#080403" stroke-width="1.2"/>
+      <path d="M 41,-18 Q 56,-18 57,-2 Q 57,12 44,14 L 34,12 L 34,-6 Z" fill="#482116" stroke="#080403" stroke-width="1.2"/>
+      <path d="M -53,-8 Q -50,6 -42,9" fill="none" stroke="#8a4c30" stroke-width="1.1" opacity="0.65"/>
+      <path d="M 53,-8 Q 50,6 42,9" fill="none" stroke="#8a4c30" stroke-width="1.1" opacity="0.65"/>
+      <!-- asiento acolchado y falda -->
+      <path d="M -38,14 L 38,14 L 35,44 L -35,44 Z" fill="#3c1a10" stroke="#080403" stroke-width="1.2"/>
+      <path d="M -34,16 Q 0,9 34,16 L 32,34 Q 0,27 -32,34 Z" fill="#6c3323" opacity="0.9"/>
+      <path d="M -32,34 Q 0,27 32,34 L 31,42 Q 0,36 -31,42 Z" fill="#2a110b"/>
+      <path d="M -31,42 Q 0,36 31,42" fill="none" stroke="#8a5230" stroke-width="0.7" opacity="0.5"/>
+      <!-- tachuelas del borde -->
+      <g fill="#c09050" opacity="0.72">
+        <circle cx="-26" cy="38" r="0.9"/><circle cx="-16" cy="37" r="0.9"/><circle cx="-6" cy="36.4" r="0.9"/>
+        <circle cx="4" cy="36.2" r="0.9"/><circle cx="14" cy="36.4" r="0.9"/><circle cx="24" cy="37" r="0.9"/>
+      </g>
+      <g fill="#a87848" opacity="0.55">
+        <circle cx="-39" cy="-14" r="0.9"/><circle cx="-39" cy="2" r="0.9"/>
+        <circle cx="39" cy="-14" r="0.9"/><circle cx="39" cy="2" r="0.9"/>
+      </g>
+      <!-- manta doblada con laberinto en el brazo izquierdo -->
+      <g transform="translate(-44,2)">
+        <path d="M -10,0 Q -12,8 -8,14 L 10,14 Q 12,6 9,0 Z" fill="#5a3020" stroke="#1e0d07" stroke-width="0.8"/>
+        <path d="M -8,2 Q 0,5 8,2 M -8,6 Q 0,9 8,6" fill="none" stroke="#8a5a38" stroke-width="0.6" opacity="0.6"/>
+        <path d="M -5,10 L -2,10 L -2,7 L 1,7 L 1,11 L -4,11 L -4,9 L -2,9" fill="none" stroke="#b08a48" stroke-width="0.5" opacity="0.6"/>
+      </g>
+      <!-- luz cálida del hogar sobre el borde derecho -->
+      <path d="M 40,-44 Q 47,-18 43,14 L 37,12 Q 41,-18 35,-44 Z" fill="#d08a44" opacity="0.16"/>
+      <path d="M 57,-14 Q 60,-2 56,8 L 52,7 Q 56,-2 53,-14 Z" fill="#d08a44" opacity="0.13"/>
+    </g>`;
+    // Velador con tres velas a la derecha del hogar.
+    let stand = `<g transform="translate(578,470)">
+      <ellipse cx="0" cy="3" rx="20" ry="5" fill="#000" opacity="0.5"/>
+      <path d="M -12,-2 L 12,-2 L 9,-10 L -9,-10 Z" fill="#2a1d14" stroke="#080504" stroke-width="0.8"/>
+      <rect x="-5" y="-38" width="10" height="28" fill="#24170f" stroke="#080504" stroke-width="0.8"/>
+      <path d="M -6,-38 L 6,-38 L 13,-46 L -13,-46 Z" fill="#3a291c" stroke="#080504" stroke-width="0.8"/>
+      <g transform="translate(0,-46)">
+        <path d="M -10,0 L 10,0 L 8,-4 L -8,-4 Z" fill="#17100b"/>
+        <g transform="translate(-8,0)">
+          <rect x="-1.5" y="-17" width="3" height="17" fill="#d8c8a0" opacity="0.7"/>
+          <path d="M 0,-25 Q -4,-20 0,-15 Q 4,-20 0,-25 Z" fill="#f0b050"><animate attributeName="opacity" values="0.6;0.95;0.7;0.9;0.6" dur="1.8s" repeatCount="indefinite"/></path>
+        </g>
+        <g transform="translate(7,-1)">
+          <rect x="-1.5" y="-13" width="3" height="13" fill="#d8c8a0" opacity="0.7"/>
+          <path d="M 0,-21 Q -4,-16 0,-11 Q 4,-16 0,-21 Z" fill="#f0b050"><animate attributeName="opacity" values="0.55;0.9;0.65;0.85;0.55" dur="2.1s" begin="-0.8s" repeatCount="indefinite"/></path>
+        </g>
+      </g>
+      <ellipse cx="0" cy="-30" rx="50" ry="70" fill="url(#antCandleGlow)" opacity="0.35"/>
+    </g>`;
+
+    return `
+    <defs>
+      <linearGradient id="antCeilG" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#0b0808"/>
+        <stop offset="0.55" stop-color="#15100e"/>
+        <stop offset="1" stop-color="#211812"/>
+      </linearGradient>
+      <linearGradient id="antWallG" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#201712"/>
+        <stop offset="0.55" stop-color="#18110e"/>
+        <stop offset="1" stop-color="#0d0908"/>
+      </linearGradient>
+      <linearGradient id="antWoodG" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#2a1a12"/>
+        <stop offset="0.55" stop-color="#1b100b"/>
+        <stop offset="1" stop-color="#0d0705"/>
+      </linearGradient>
+      <linearGradient id="antFireMouth" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#4a1a08" stop-opacity="0.7"/>
+        <stop offset="0.55" stop-color="#9a3a10" stop-opacity="0.35"/>
+        <stop offset="1" stop-color="#1f0a05" stop-opacity="0.9"/>
+      </linearGradient>
+      <radialGradient id="antFireGlow" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#ffc070" stop-opacity="0.55"/>
+        <stop offset="0.32" stop-color="#e89040" stop-opacity="0.28"/>
+        <stop offset="0.68" stop-color="#8a4018" stop-opacity="0.1"/>
+        <stop offset="1" stop-color="#3a1408" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="antFirePool" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#d07830" stop-opacity="0.22"/>
+        <stop offset="0.55" stop-color="#8a3c16" stop-opacity="0.1"/>
+        <stop offset="1" stop-color="#3a1408" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="antCoolPool" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#58a8b0" stop-opacity="0.16"/>
+        <stop offset="1" stop-color="#183838" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="antCandleGlow" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#ffd890" stop-opacity="0.42"/>
+        <stop offset="0.5" stop-color="#e0a050" stop-opacity="0.14"/>
+        <stop offset="1" stop-color="#a06020" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="antChandGlow" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#ffd080" stop-opacity="0.28"/>
+        <stop offset="0.55" stop-color="#d09040" stop-opacity="0.09"/>
+        <stop offset="1" stop-color="#805020" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="antSmoke" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#2a1a14" stop-opacity="0.32"/>
+        <stop offset="0.6" stop-color="#120c0a" stop-opacity="0.14"/>
+        <stop offset="1" stop-color="#080605" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="antClothG" x1="0" y1="0" x2="1" y2="0.4">
+        <stop offset="0" stop-color="#1d070b"/>
+        <stop offset="0.35" stop-color="#4a111a"/>
+        <stop offset="0.62" stop-color="#2e0a11"/>
+        <stop offset="1" stop-color="#120406"/>
+      </linearGradient>
+      <pattern id="antRugMaze" width="34" height="34" patternUnits="userSpaceOnUse">
+        <path d="M 5,5 H 29 V 29 H 11 V 13 H 23 V 21 H 17" fill="none" stroke="#b07a40" stroke-width="0.8" opacity="0.55"/>
+      </pattern>
+      <radialGradient id="antVignette" cx="0.5" cy="0.47" r="0.72">
+        <stop offset="0" stop-color="#000" stop-opacity="0"/>
+        <stop offset="0.55" stop-color="#000" stop-opacity="0.02"/>
+        <stop offset="0.8" stop-color="#000" stop-opacity="0.26"/>
+        <stop offset="1" stop-color="#000" stop-opacity="0.66"/>
+      </radialGradient>
+      <filter id="antSoft" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="4"/>
+      </filter>
+    </defs>
+    <rect width="900" height="600" fill="#050403"/>
+    ${vault}
+    ${wall}
+    ${floor}
+    ${niches}
+    ${fire}
+    ${rug}
+    ${bloodTrail}
+    ${tapestry}
+    ${chandelier}
+    ${chair}
+    ${stand}
+    <ellipse cx="450" cy="438" rx="242" ry="196" fill="url(#antFireGlow)" opacity="0.7" pointer-events="none"/>
+    <ellipse cx="578" cy="408" rx="74" ry="100" fill="url(#antCandleGlow)" opacity="0.36" pointer-events="none"/>
+    <ellipse cx="816" cy="378" rx="90" ry="142" fill="url(#antCoolPool)" opacity="0.4" pointer-events="none"/>
+    <rect y="566" width="900" height="34" fill="#020202" opacity="0.3" pointer-events="none"/>
+    `;
+  },
   espejos: () => {
     // ── Cuarto de espejos (hab. 5): galería de paneles, arco y suelo en fuga ──
     const hash = (a, b) => {
@@ -12854,6 +14251,87 @@ const FOREGROUNDS = {
     </g>
     <rect width="900" height="600" fill="url(#alcVignette)" pointer-events="none"/>
   `,
+  antesala: () => `
+    <defs>
+      <radialGradient id="ant28WarmAir" cx="0.5" cy="0.52" r="0.5">
+        <stop offset="0"    stop-color="#f0a850" stop-opacity="0.13"/>
+        <stop offset="0.45" stop-color="#c06a28" stop-opacity="0.06"/>
+        <stop offset="1"    stop-color="#5a2008" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="ant28CoolAir" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0"    stop-color="#7ad0d4" stop-opacity="0.12"/>
+        <stop offset="0.55" stop-color="#3a7a86" stop-opacity="0.05"/>
+        <stop offset="1"    stop-color="#0a2028" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="ant28Evil" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0"    stop-color="#5a0c1c" stop-opacity="0.12"/>
+        <stop offset="0.6"  stop-color="#2a0410" stop-opacity="0.05"/>
+        <stop offset="1"    stop-color="#000" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <g pointer-events="none">
+      <!-- luz cálida del hogar sobre muebles y alfombra -->
+      <ellipse cx="450" cy="430" rx="285" ry="185" fill="url(#ant28WarmAir)" opacity="0.55">
+        <animate attributeName="opacity" values="0.42;0.58;0.46;0.56;0.42" dur="6.4s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx="816" cy="392" rx="105" ry="170" fill="url(#ant28CoolAir)" opacity="0.5">
+        <animate attributeName="opacity" values="0.35;0.52;0.4;0.48;0.35" dur="7.8s" begin="-2.6s" repeatCount="indefinite"/>
+      </ellipse>
+      <!-- algo malvado flota sobre la estancia: apenas una mancha -->
+      <ellipse cx="450" cy="246" rx="300" ry="112" fill="url(#ant28Evil)" opacity="0.3">
+        <animate attributeName="cx" values="440;466;440" dur="24s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.18;0.34;0.2;0.3;0.18" dur="17s" repeatCount="indefinite"/>
+      </ellipse>
+      <!-- ascuas del hogar que pasan por delante -->
+      <g fill="#f0a050">
+        <circle cx="436" cy="436" r="1.1" opacity="0">
+          <animate attributeName="cy" values="436;346" dur="6.2s" repeatCount="indefinite"/>
+          <animate attributeName="cx" values="436;430;438" dur="6.2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.6;0" dur="6.2s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="470" cy="430" r="0.8" opacity="0">
+          <animate attributeName="cy" values="430;320" dur="8.4s" begin="-3.1s" repeatCount="indefinite"/>
+          <animate attributeName="cx" values="470;478;468" dur="8.4s" begin="-3.1s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.45;0" dur="8.4s" begin="-3.1s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="454" cy="424" r="0.7" opacity="0">
+          <animate attributeName="cy" values="424;300" dur="9.6s" begin="-6.2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.38;0" dur="9.6s" begin="-6.2s" repeatCount="indefinite"/>
+        </circle>
+      </g>
+      <!-- polvo suspendido en la luz -->
+      <g fill="#d8c8a8">
+        <circle cx="196" cy="420" r="0.9" opacity="0">
+          <animate attributeName="cy" values="420;180" dur="28s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.32;0" dur="28s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="300" cy="360" r="0.7" opacity="0">
+          <animate attributeName="cy" values="360;150" dur="34s" begin="-11s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.26;0" dur="34s" begin="-11s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="596" cy="400" r="0.8" opacity="0">
+          <animate attributeName="cy" values="400;170" dur="31s" begin="-5s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.28;0" dur="31s" begin="-5s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="676" cy="440" r="0.6" opacity="0">
+          <animate attributeName="cy" values="440;220" dur="26s" begin="-17s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.24;0" dur="26s" begin="-17s" repeatCount="indefinite"/>
+        </circle>
+      </g>
+      <!-- motas frías alrededor de la columna de cristal -->
+      <g fill="#b8f0ec">
+        <circle cx="790" cy="330" r="0.8" opacity="0">
+          <animate attributeName="cy" values="330;250" dur="7.6s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.45;0" dur="7.6s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="842" cy="360" r="0.6" opacity="0">
+          <animate attributeName="cy" values="360;270" dur="9.2s" begin="-4.4s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.35;0" dur="9.2s" begin="-4.4s" repeatCount="indefinite"/>
+        </circle>
+      </g>
+      <rect width="900" height="600" fill="url(#antVignette)" pointer-events="none"/>
+    </g>
+  `,
   calabozos: () => `
     <g pointer-events="none">
       <!-- vaho bajo que se arrastra por las losas -->
@@ -13326,6 +14804,58 @@ const FOREGROUNDS = {
       <rect y="574" width="900" height="26" fill="#020503" opacity="0.45"/>
       <rect width="900" height="600" fill="url(#jarVignette)"/>
     </g>
+  `,
+  pasillo: () => `
+    <g pointer-events="none">
+      <ellipse cx="300" cy="352" rx="210" ry="240" fill="url(#pasTorchGlow)" opacity="0.14"/>
+      <g fill="#e8d0a8">
+        <circle cx="140" cy="300" r="1.1" opacity="0">
+          <animate attributeName="cy" values="320;236" dur="26s" begin="-4s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.32;0" dur="26s" begin="-4s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="236" cy="250" r="0.8" opacity="0">
+          <animate attributeName="cy" values="280;198" dur="31s" begin="-17s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.26;0" dur="31s" begin="-17s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="336" cy="340" r="1.2" opacity="0">
+          <animate attributeName="cy" values="360;278" dur="23s" begin="-9s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.36;0" dur="23s" begin="-9s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="428" cy="390" r="0.9" opacity="0">
+          <animate attributeName="cy" values="410;330" dur="28s" begin="-21s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.28;0" dur="28s" begin="-21s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="548" cy="310" r="1" opacity="0">
+          <animate attributeName="cy" values="340;250" dur="34s" begin="-12s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.22;0" dur="34s" begin="-12s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="646" cy="360" r="0.7" opacity="0">
+          <animate attributeName="cy" values="380;300" dur="29s" begin="-25s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.2;0" dur="29s" begin="-25s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="748" cy="270" r="1.1" opacity="0">
+          <animate attributeName="cy" values="300;214" dur="36s" begin="-6s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.18;0" dur="36s" begin="-6s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="828" cy="400" r="0.8" opacity="0">
+          <animate attributeName="cy" values="420;342" dur="24s" begin="-19s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.16;0" dur="24s" begin="-19s" repeatCount="indefinite"/>
+        </circle>
+      </g>
+      <g>
+        <ellipse cx="260" cy="522" rx="250" ry="80" fill="url(#pasHaze)" opacity="0.35">
+          <animate attributeName="opacity" values="0.22;0.4;0.26;0.36;0.22" dur="11s" repeatCount="indefinite"/>
+          <animate attributeName="cx" values="250;282;250" dur="17s" repeatCount="indefinite"/>
+        </ellipse>
+        <ellipse cx="640" cy="505" rx="280" ry="70" fill="url(#pasHaze)" opacity="0.22">
+          <animate attributeName="opacity" values="0.14;0.28;0.18;0.24;0.14" dur="14s" begin="-5s" repeatCount="indefinite"/>
+        </ellipse>
+        <ellipse cx="450" cy="580" rx="430" ry="60" fill="url(#pasHaze)" opacity="0.18">
+          <animate attributeName="opacity" values="0.1;0.22;0.12;0.2;0.1" dur="9s" begin="-3s" repeatCount="indefinite"/>
+        </ellipse>
+      </g>
+      <rect width="900" height="600" fill="url(#pasVig)"/>
+    </g>
   `
 };
 
@@ -13336,7 +14866,33 @@ function getForeground(svgType){
 /* ═══════════════════════════════════════════════════════════════
    POSICIONES EXPLÍCITAS (override para habitaciones clave)
    ═══════════════════════════════════════════════════════════════ */
+/* ── Pasillo (hab. 7): corredor en fuga ──
+   Punto de fuga en (450,320). El muro del fondo va de x=230 a 670 y de
+   y=163.6 a 456.9; los muros laterales se inclinan hasta el borde inferior.
+   Cada hoja se coloca con su base sobre la línea del suelo del muro y con
+   un sesgo igual a la pendiente de esa línea, de modo que el nicho y la
+   hoja comparten exactamente la misma transformación. */
+const PASILLO7 = {
+  puerta7:   { x: 450, base: 456.9, scale: 2.50, skew: 0,      giant: true },
+  p_vieja7:  { x: 705, base: 478.7, scale: 1.10, skew: 31.89 },
+  p_roja7:   { x: 826, base: 554.0, scale: 1.34, skew: 31.89 },
+  p_prohib7: { x: 178, base: 489.3, scale: 1.12, skew: -31.89 },
+  p_gris7:   { x: 74,  base: 554.0, scale: 1.34, skew: -31.89 }
+};
+function pasilloPos(id){
+  const d = PASILLO7[id];
+  return { x: d.x, y: d.base - 36 * d.scale, scale: d.scale, skew: d.skew };
+}
+
 const POSITIONS = {
+7: {
+    puerta7:   pasilloPos('puerta7'),
+    p_vieja7:  pasilloPos('p_vieja7'),
+    p_roja7:   pasilloPos('p_roja7'),
+    p_prohib7: pasilloPos('p_prohib7'),
+    p_gris7:   pasilloPos('p_gris7'),
+    antorcha:  { x: 300, y: 326, scale: 1.5 }
+  },
 1: {
     p_ppal:   { x: 500, y: 455, scale: 2.2 },
     llamador: { x: 500, y: 415, scale: 1.3 },
@@ -13435,9 +14991,13 @@ const POSITIONS = {
     martillo:  { x: 450, y: 556, scale: 1.65 }
   },
   28: {
-    columna:  { x: 700, y: 360, scale: 1.3 },
-    p_madera28: { x: 780, y: 460, scale: 1 },
-    p_negra28:  { x: 780, y: 470, scale: 1 }
+    p28:        { x: 145, y: 470, scale: 1 },
+    p_verde28:  { x: 657, y: 470, scale: 1 },
+    columna:    { x: 816, y: 520, scale: 1 },
+    p_madera28: { x: 816, y: 470, scale: 1 },
+    p_negra28:  { x: 816, y: 470, scale: 1 },
+    crunch:     { x: 226, y: 542, scale: 1.8 },
+    dedalo:     { x: 518, y: 542, scale: 1.75 }
   }
 };
 
@@ -13480,9 +15040,9 @@ function getPos(roomId, obj, cat, idx, total){
    sala y la caja no se solapa con la de ningún otro objeto presente.
    ═══════════════════════════════════════════════════════════════ */
 const DROP_FLOOR_Y = {
-  1: 540, 2: 520, 3: 520, 4: 520, 5: 525, 6: 520,
+  1: 540, 2: 520, 3: 520, 4: 520, 5: 525, 6: 520, 7: 570,
   12: 540, 13: 520, 14: 520, 15: 520, 16: 520,
-  23: 520, 27: 535
+  23: 520, 27: 535, 28: 540
 };
 const DROP_FLOOR_DEFAULT = 525;
 const DROP_MAX_DIM = 170;
@@ -13692,7 +15252,10 @@ const OBJ_SHADOWS = {
   esqueleto:{ y: 1.5,  rx: 88, ry: 7,   op: 0.34 },
   raton:    { y: 2,    rx: 18, ry: 3.4, op: 0.28 },
   hueso:    { y: 8.5, rx: 20, ry: 2.6, op: 0.34 },
-  espejo:   { y: 126,  rx: 64, ry: 6,   op: 0.42 }
+  espejo:   { y: 126,  rx: 64, ry: 6,   op: 0.42 },
+  columna:  { y: 0,    rx: 38, ry: 6,   op: 0.44 },
+  crunch:   { y: 0,    rx: 48, ry: 5,   op: 0.34 },
+  dedalo:   { y: 0,    rx: 31, ry: 4.6, op: 0.32 }
 };
 const OBJ_SHADOW_DEFAULT = { y: 28, rx: 22, ry: 4.5, op: 0.26 };
 const WALL_OBJ_RE = /^(retrato|insc|grabado|cuadro|espejo\d*|llamador|ant\d*|antorcha|pared)/;
@@ -13754,6 +15317,9 @@ function renderSVG(){
   // 2. Objetos ocultos
   hiddens.forEach((o, i) => {
     const pos   = getPos(G.curr, o, 'hidden', i, hiddens.length);
+    // La puerta de madera revelada es una puerta, no una cosa oculta más:
+    // se dibuja con la hoja encajada en la hornacina y sin sombra de suelo.
+    if (o.id === 'p_madera28') { body += renderDoorSprite(o, pos); return; }
     if (hasGroundShadow(o, pos)) body += renderGroundShadow(o, pos);
     const scale = pos.scale || 1;
     const spriteFn = getSprite(o);
@@ -14453,8 +16019,15 @@ function renderPostern27(o, pos){
 function renderArchedDoor(o, pos){
   const sc = pos.scale || 1;
   const black2 = (o.id === 'p_negra2');
+  const giant = (o.id === 'puerta7');
+  const prohib = (o.id === 'p_prohib7');
   const isBlack = black2 || /negra|negro/i.test(o.name);
-  const color = black2 ? '#15161e' : doorColor(o.name);
+  const color = giant ? '#54381f'
+              : (o.id === 'p_gris7')  ? '#7b8086'
+              : (o.id === 'p_roja7')  ? '#8f4a44'
+              : (o.id === 'p_vieja7') ? '#6f5134'
+              : (o.id === 'p_prohib7')? '#66527c'
+              : black2 ? '#15161e' : doorColor(o.name);
   const darker = shadeColor(color, -55);
   const lighter = shadeColor(color, 50);
   const leafStroke = isBlack ? '#07080c' : '#0c1710';
@@ -14538,6 +16111,18 @@ function renderArchedDoor(o, pos){
     g += `<circle cx="${half * 0.55}" cy="3" r="2.4" fill="none" stroke="${ringCol}" stroke-width="1.1"/>`;
     g += `<circle cx="${half * 0.55}" cy="3" r="1.15" fill="${ringCol}" opacity="0.7"/>`;
     g += `<rect x="${half * 0.48}" y="-6" width="3" height="4.2" rx="0.5" fill="#1a1a22" stroke="#5a5a68" stroke-width="0.4"/>`;
+    if (giant) {
+      // Puerta para gigantes: hoja doble, junta central y dos anillas.
+      g += `<line x1="0" y1="${apex + 1}" x2="0" y2="${bottom - 1}" stroke="#1a0f08" stroke-width="1.5" opacity="0.92"/>`;
+      g += `<line x1="0.9" y1="${apex + 3}" x2="0.9" y2="${bottom - 3}" stroke="#8a6034" stroke-width="0.5" opacity="0.35"/>`;
+      g += `<circle cx="${-half * 0.55}" cy="3" r="2.4" fill="none" stroke="${ringCol}" stroke-width="1.1"/>`;
+      g += `<circle cx="${-half * 0.55}" cy="3" r="1.15" fill="${ringCol}" opacity="0.7"/>`;
+      g += `<path d="M ${-half + 3},${apex + 12} L ${-half + 3},${bottom - 5} M ${half - 3},${apex + 12} L ${half - 3},${bottom - 5}"
+               stroke="#1a1a22" stroke-width="2.4" opacity="0.8"/>`;
+      // Aldaba central de forja.
+      g += `<circle cx="0" cy="5" r="5.2" fill="none" stroke="#241a12" stroke-width="2.8"/>`;
+      g += `<circle cx="0" cy="5" r="5.2" fill="none" stroke="#8a6a3a" stroke-width="0.7" opacity="0.55"/>`;
+    }
     if (black2) {
       // Pátina azulada y pequeños desconchones: el negro sigue siendo negro,
       // pero la hoja se lee contra el hueco y no parece una mancha plana.
@@ -14553,11 +16138,19 @@ function renderArchedDoor(o, pos){
     g += `<path d="M ${-half + 0.7},${bottom} L ${-half + 0.7},${spring} Q ${-half + 0.7},${apex + 0.8} 0,${apex + 0.8} Q ${half - 0.7},${apex + 0.8} ${half - 0.7},${spring} L ${half - 0.7},${bottom}"
              fill="none" stroke="${lighter}" stroke-width="0.65" opacity="0.3"/>`;
     g += `</g>`;
+    if (prohib) {
+      // Sigilo de prohibición: un rombo inscrito que apenas brilla.
+      g += `<g transform="translate(0,${apex + 20})" fill="none" stroke="#c8a0ff" opacity="0.58">
+        <circle r="7.5" stroke-width="0.7"/>
+        <path d="M -4.6,0 L 0,-4.6 L 4.6,0 L 0,4.6 Z" stroke-width="0.8"/>
+        <circle r="1.1" fill="#c8a0ff" stroke="none"/>
+      </g>`;
+    }
     g += `<path d="M ${-half},${bottom} L ${half},${bottom}" stroke="#0a120d" stroke-width="1.2" opacity="0.8"/>`;
   }
 
   return `<g class="obj" data-type="${o.t}" data-name="${o.name}"
-            transform="translate(${pos.x},${pos.y}) scale(${sc})"
+            transform="translate(${pos.x},${pos.y}) scale(${sc})${pos.skew ? ` skewY(${pos.skew})` : ''}"
             style="color:${color}"
             role="button" tabindex="0" aria-label="${o.name}">
             ${g}
@@ -14755,14 +16348,235 @@ function renderMirrorPortal5(o, pos){
   </g>`;
 }
 
+/* ── Puertas de la Antesala del Laberinto (hab. 28) ──
+   Las tres hornacinas del fondo ya son el marco: la hoja ocupa el hueco
+   arqueado hasta la línea del suelo (470) y no se dibuja un marco rectangular
+   encima. La puerta de madera y la negra comparten la hornacina pequeña de la
+   derecha; la columna de cristal la tapa hasta que se rompe. */
+function renderAntesalaDoor28(o, pos){
+  const sc = pos.scale || 1;
+  const big = (o.id === 'p28' || o.id === 'p_verde28');
+  const half = big ? 54 : 42;
+  const spring = big ? -108 : -101;
+  const apex = big ? -166 : -143;
+  const bottom = 0;
+  const leaf = `M ${-half},${bottom} L ${-half},${spring} Q ${-half},${apex} 0,${apex} Q ${half},${apex} ${half},${spring} L ${half},${bottom} Z`;
+
+  const id = String(o.id || 'ant28').replace(/[^a-zA-Z0-9_-]/g, '');
+  const clipId = `ant28Leaf_${id}`;
+  const wearId = `ant28Wear_${id}`;
+  const glowId = `ant28Glow_${id}`;
+
+  const isGreen = (o.id === 'p_verde28');
+  const isWood  = (o.id === 'p_madera28');
+  const isBlack = (o.id === 'p_negra28');
+  const isOpen  = !!o._open;
+
+  const color   = isGreen ? '#3a5c42' : isWood ? '#64401f' : isBlack ? '#0c0c12' : '#472a18';
+  const darker  = isGreen ? '#14271a' : isWood ? '#2a1708' : isBlack ? '#000000' : '#1a0e07';
+  const lighter = isGreen ? '#7aa07e' : isWood ? '#a87a48' : isBlack ? '#3c3e4c' : '#8a5c34';
+  const bandCol = isBlack ? '#22242e' : isWood ? '#3a2a18' : '#211f1d';
+  const bandHi  = isBlack ? '#7a7e8a' : isWood ? '#6a5236' : '#8a7860';
+  const ringCol = isBlack ? '#9a9eaa' : isWood ? '#b08a48' : '#b18f4e';
+  const leafStroke = isBlack ? '#050508' : isGreen ? '#0b1a10' : '#170b05';
+
+  let g = '';
+
+  if (isOpen) {
+    // Vano abierto: hoja estrecha plegada contra la jamba izquierda y corredor en penumbra verde.
+    const panelW = big ? 22 : 17;
+    const panel = `M ${-half},0 L ${-half},${spring} Q ${-half},${apex} ${-half + panelW * 0.55},${apex} Q ${-half + panelW},${apex} ${-half + panelW},${spring} L ${-half + panelW},0 Z`;
+    const panelClipId = `${clipId}Panel`;
+    const gateId = `${glowId}Gate`;
+    g += `<path d="${leaf}" fill="#030806" stroke="${leafStroke}" stroke-width="1"/>`;
+    g += `<defs>
+      <clipPath id="${clipId}"><path d="${leaf}"/></clipPath>
+      <clipPath id="${panelClipId}"><path d="${panel}"/></clipPath>
+      <linearGradient id="${glowId}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0"    stop-color="#2f6a40" stop-opacity="0.04"/>
+        <stop offset="0.55" stop-color="#3f8a54" stop-opacity="0.15"/>
+        <stop offset="1"    stop-color="#8ae0a0" stop-opacity="0.34"/>
+      </linearGradient>
+      <radialGradient id="${gateId}" cx="0.5" cy="0.55" r="0.5">
+        <stop offset="0"    stop-color="#b8f0c4" stop-opacity="0.42"/>
+        <stop offset="0.45" stop-color="#4a9a64" stop-opacity="0.2"/>
+        <stop offset="1"    stop-color="#0a2012" stop-opacity="0"/>
+      </radialGradient>
+    </defs>`;
+    g += `<g clip-path="url(#${clipId})">`;
+    g += `<rect x="${-half}" y="${apex}" width="${half * 2}" height="${-apex}" fill="#020604"/>`;
+    // ambiente verdoso del corredor
+    g += `<ellipse cx="14" cy="-30" rx="55" ry="74" fill="url(#${glowId})"/>`;
+    // muro del fondo con un arco lejano encendido
+    g += `<path d="M 0,-52 L 0,-96 Q 0,-114 12,-114 Q 24,-114 24,-96 L 24,-52 Z"
+             fill="#08180e" stroke="#3f8a54" stroke-width="0.9" opacity="0.7"/>`;
+    g += `<path d="M 3,-54 L 3,-95 Q 3,-110 12,-110 Q 21,-110 21,-95 L 21,-54 Z"
+             fill="url(#${gateId})" opacity="0.85"/>`;
+    // suelo en fuga
+    g += `<path d="M -54,0 L 54,0 L 25,-52 L 0,-52 Z" fill="#0e2a18" opacity="0.62"/>`;
+    // paredes laterales en sombra
+    g += `<path d="M -54,0 L -2,-52 L 0,-52 L 0,0 Z" fill="#06140c" opacity="0.78"/>`;
+    g += `<path d="M 54,0 L 26,-52 L 24,-52 L 24,0 Z" fill="#05120a" opacity="0.72"/>`;
+    // juntas del suelo y reflejo central
+    g += `<g stroke="#2c6a40" stroke-width="0.8" opacity="0.22">
+      <path d="M -50,-8 L 50,-8 M -43,-18 L 43,-18 M -33,-30 L 33,-30 M -20,-42 L 22,-42"/>
+      <path d="M -50,-8 L 0,-52 M 50,-8 L 24,-52"/>
+    </g>`;
+    g += `<path d="M 2,-2 L 2,-50" stroke="#5aa870" stroke-width="1" opacity="0.14"/>`;
+    g += `<g fill="#8ae0a0">
+      <circle cx="20" cy="-34" r="0.9" opacity="0.5">
+        <animate attributeName="opacity" values="0.15;0.6;0.15" dur="4.4s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="34" cy="-52" r="0.6" opacity="0.35"/>
+      <circle cx="12" cy="-20" r="0.7" opacity="0.4"/>
+      <circle cx="42" cy="-72" r="0.5" opacity="0.3"/>
+    </g></g>`;
+    // hoja entreabierta: tabla ancha, molduras y herrajes
+    g += `<path d="${panel}" fill="${color}" stroke="${darker}" stroke-width="1"/>`;
+    g += `<g clip-path="url(#${panelClipId})">`;
+    for (let i = 1; i <= 2; i++) {
+      const x = -half + (panelW * i) / 3;
+      g += `<line x1="${x.toFixed(1)}" y1="${apex}" x2="${x.toFixed(1)}" y2="0" stroke="${darker}" stroke-width="0.7" opacity="0.72"/>`;
+    }
+    g += `<path d="M ${-half + 4},0 L ${-half + 4},${spring + 4} Q ${-half + 4},${apex + 9} ${-half + panelW * 0.55},${apex + 10} Q ${-half + panelW - 4},${apex + 9} ${-half + panelW - 4},${spring + 4} L ${-half + panelW - 4},0"
+             fill="none" stroke="${lighter}" stroke-width="0.7" opacity="0.24"/>`;
+    g += `<g stroke="${bandCol}" stroke-width="3.6" opacity="0.92">
+      <line x1="${-half - 2}" y1="-36" x2="${-half + panelW + 2}" y2="-36"/>
+      <line x1="${-half - 2}" y1="-96" x2="${-half + panelW + 2}" y2="-96"/>
+    </g>`;
+    g += `<g fill="${bandHi}" opacity="0.55">
+      <circle cx="${-half + 5}" cy="-36" r="0.8"/><circle cx="${-half + 11}" cy="-36" r="0.8"/><circle cx="${-half + 17}" cy="-36" r="0.8"/>
+      <circle cx="${-half + 5}" cy="-96" r="0.8"/><circle cx="${-half + 11}" cy="-96" r="0.8"/><circle cx="${-half + 17}" cy="-96" r="0.8"/>
+    </g>`;
+    // emblema laberíntico de latón
+    g += `<g transform="translate(${(-half + panelW * 0.5).toFixed(1)},-66)" fill="none" stroke="#c8a45c" opacity="0.7">
+      <circle r="7" stroke-width="0.7"/>
+      <path d="M -4.6,1.6 L -1.6,1.6 L -1.6,-2.4 L 2.4,-2.4 L 2.4,2.4 L -3.2,2.4 L -3.2,-0.9 L 0,-0.9" stroke-width="0.6"/>
+    </g>`;
+    // tirador y bisagras
+    g += `<circle cx="${-half + panelW - 8}" cy="-16" r="2.2" fill="none" stroke="${ringCol}" stroke-width="1"/>`;
+    g += `<g fill="#161412" stroke="#4a4240" stroke-width="0.4">
+      <rect x="${-half + 1}" y="-104" width="6" height="3"/>
+      <rect x="${-half + 1}" y="-24" width="6" height="3"/>
+    </g>`;
+    g += `</g>`;
+    // borde libre y luz que se escapa por el umbral
+    g += `<path d="M ${-half + panelW},0 L ${-half + panelW},${spring}" stroke="#0a1a10" stroke-width="1.5" opacity="0.9"/>`;
+    g += `<ellipse cx="10" cy="1" rx="34" ry="4" fill="#5aa870" opacity="0.22"/>`;
+    g += `<ellipse cx="32" cy="-4" rx="22" ry="7" fill="#8ae0a0" opacity="0.08"/>`;
+    g += `<path d="M ${-half},0 L ${half},0" stroke="#07100a" stroke-width="1.6"/>`;
+    g += `<rect x="${-half}" y="${apex}" width="${half * 2}" height="${-apex}" fill="#000" opacity="0"/>`;
+  } else {
+    g += `<path d="${leaf}" fill="${color}" stroke="${leafStroke}" stroke-width="1.1"/>`;
+    g += `<defs>
+      <clipPath id="${clipId}"><path d="${leaf}"/></clipPath>
+      <linearGradient id="${wearId}" x1="0" y1="0" x2="0.85" y2="1">
+        <stop offset="0"    stop-color="#000" stop-opacity="0.30"/>
+        <stop offset="0.28" stop-color="#000" stop-opacity="0.04"/>
+        <stop offset="0.62" stop-color="#000" stop-opacity="0.12"/>
+        <stop offset="1"    stop-color="#000" stop-opacity="0.46"/>
+      </linearGradient>
+    </defs>`;
+    g += `<g clip-path="url(#${clipId})">`;
+    // tablones verticales
+    const planks = big ? 5 : 4;
+    for (let i = 1; i < planks; i++) {
+      const x = -half + (half * 2) * i / planks;
+      g += `<line x1="${x.toFixed(1)}" y1="${apex - 2}" x2="${x.toFixed(1)}" y2="${bottom + 2}" stroke="${darker}" stroke-width="0.75" opacity="0.8"/>`;
+      g += `<line x1="${(x + 0.7).toFixed(1)}" y1="${apex - 2}" x2="${(x + 0.7).toFixed(1)}" y2="${bottom + 2}" stroke="${lighter}" stroke-width="0.3" opacity="0.16"/>`;
+    }
+    // veta y desgaste
+    g += `<g fill="none" stroke="${darker}" opacity="0.22">
+      <path d="M ${-half * 0.62},${apex + 12} Q ${-half * 0.5},-80 ${-half * 0.58},-6"/>
+      <path d="M ${half * 0.22},${apex + 18} Q ${half * 0.3},-70 ${half * 0.24},-10"/>
+      <path d="M ${half * 0.58},${apex + 34} Q ${half * 0.64},-48 ${half * 0.6},-14"/>
+    </g>`;
+    g += `<rect x="${-half - 2}" y="${apex - 2}" width="${half * 2 + 4}" height="${bottom - apex + 4}" fill="url(#${wearId})"/>`;
+    // grietas: la madera de la hornacina pequeña se ve a punto de ceder
+    if (isWood) {
+      g += `<g fill="none" stroke="#130803" stroke-linecap="round">
+        <path d="M ${-half + 8},${apex + 26} L ${-half + 16},${apex + 48} L ${-half + 12},${apex + 66} L ${-half + 22},${apex + 86} L ${-half + 18},${apex + 112} L ${-half + 26},-18" stroke-width="1.4"/>
+        <path d="M ${half - 7},${apex + 38} L ${half - 15},${apex + 58} L ${half - 11},${apex + 78} L ${half - 20},${apex + 96}" stroke-width="1.1"/>
+        <path d="M ${-half + 4},-58 L ${-half + 14},-54 L ${-half + 16},-46 L ${-half + 5},-48 Z" fill="#050403" stroke="none"/>
+        <path d="M ${half - 4},-34 L ${half - 12},-30 L ${half - 10},-24 L ${half - 4},-26 Z" fill="#050403" stroke="none"/>
+      </g>`;
+      g += `<g fill="none" stroke="${lighter}" stroke-width="0.4" opacity="0.35">
+        <path d="M ${-half + 9},${apex + 28} L ${-half + 17},${apex + 48}"/>
+        <path d="M ${half - 8},${apex + 40} L ${half - 16},${apex + 58}"/>
+      </g>`;
+    }
+    // herrajes
+    if (isWood) {
+      g += `<path d="M ${-half + 3},-20 L ${half - 3},-92" stroke="${bandCol}" stroke-width="6" opacity="0.9"/>`;
+      g += `<path d="M ${-half + 3},-21 L ${half - 3},-93" stroke="${bandHi}" stroke-width="0.6" opacity="0.35"/>`;
+      [[-half + 10, -28], [half - 9, -82], [-half + 7, -102], [half - 5, -30]].forEach(([nx, ny]) => {
+        g += `<circle cx="${nx}" cy="${ny}" r="1.5" fill="#241608"/><circle cx="${nx}" cy="${ny}" r="0.65" fill="#8a6a3a" opacity="0.6"/>`;
+      });
+    } else {
+      const bands = isBlack ? [-96] : [-102, -36];
+      bands.forEach(y0 => {
+        g += `<rect x="${-half + 0.6}" y="${y0}" width="${half * 2 - 1.2}" height="6" fill="${bandCol}" stroke="#080808" stroke-width="0.45"/>`;
+        g += `<line x1="${-half + 1.4}" y1="${y0 + 1}" x2="${half - 1.4}" y2="${y0 + 1}" stroke="${bandHi}" stroke-width="0.5" opacity="0.4"/>`;
+        [-0.72, -0.42, -0.12, 0.18, 0.48, 0.78].forEach(f => {
+          const cx = half * f;
+          g += `<circle cx="${cx.toFixed(1)}" cy="${y0 + 3}" r="0.9" fill="#8a7a60"/>`;
+          g += `<circle cx="${cx.toFixed(1)}" cy="${y0 + 3}" r="0.4" fill="#160d08"/>`;
+        });
+      });
+    }
+    if (isBlack) {
+      // filo de plata y una rendija verde al pie: el jardín está al otro lado
+      g += `<path d="M ${-half + 7},0 L ${-half + 7},${spring + 3} Q ${-half + 7},${apex + 8} 0,${apex + 8} Q ${half - 7},${apex + 8} ${half - 7},${spring + 3} L ${half - 7},0"
+                fill="none" stroke="#6a6e7c" stroke-width="0.55" opacity="0.3"/>`;
+      g += `<rect x="${-half + 2}" y="-3.2" width="${half * 2 - 4}" height="2.6" fill="#5aa870" opacity="0.46"/>`;
+      g += `<ellipse cx="0" cy="2" rx="34" ry="5" fill="#3f8a54" opacity="0.18"/>`;
+    }
+    if (isGreen) {
+      // filo vivo y emblema laberíntico: el vano conduce al Laberinto
+      g += `<path d="M ${-half + 6},0 L ${-half + 6},${spring + 3} Q ${-half + 6},${apex + 7} 0,${apex + 7} Q ${half - 6},${apex + 7} ${half - 6},${spring + 3} L ${half - 6},0"
+                fill="none" stroke="#8ac89a" stroke-width="0.6" opacity="0.28"/>`;
+      g += `<rect x="${-half + 2}" y="-3.4" width="${half * 2 - 4}" height="2.8" fill="#7ada9a" opacity="0.4"/>`;
+      g += `<g transform="translate(0,-91)" fill="none" stroke="#c8a45c" opacity="0.58">
+        <circle r="14" stroke-width="0.9"/>
+        <circle r="8" stroke-width="0.6"/>
+        <path d="M -7,0 L -3,0 L -3,-4 L 4,-4 L 4,4 L -4,4 L -4,-1 L 1,-1" stroke-width="0.8"/>
+        <path d="M 0,-14 L 0,-8 M 0,8 L 0,14 M -14,0 L -8,0 M 8,0 L 14,0" stroke-width="0.5"/>
+      </g>`;
+      g += `<ellipse cx="0" cy="2" rx="38" ry="5.5" fill="#5aa870" opacity="0.2"/>`;
+    }
+    // tirador y cerradura
+    g += `<circle cx="${half * 0.58}" cy="-10" r="3.4" fill="none" stroke="${ringCol}" stroke-width="1.4"/>`;
+    g += `<circle cx="${half * 0.58}" cy="-10" r="1.5" fill="${ringCol}" opacity="0.7"/>`;
+    g += `<rect x="${half * 0.46}" y="-19" width="4" height="5.4" rx="0.7" fill="#121218" stroke="#6a6a78" stroke-width="0.45"/>`;
+    // sombra interior del arco y umbral
+    g += `<path d="M ${-half + 0.8},0 L ${-half + 0.8},${spring} Q ${-half + 0.8},${apex + 0.8} 0,${apex + 0.8} Q ${half - 0.8},${apex + 0.8} ${half - 0.8},${spring} L ${half - 0.8},0"
+             fill="none" stroke="${lighter}" stroke-width="0.7" opacity="0.28"/>`;
+    g += `<path d="M ${-half},0 L ${half},0" stroke="#0a0805" stroke-width="1.6" opacity="0.9"/>`;
+    g += `<path d="M ${-half},-1 L ${half},-1" stroke="${lighter}" stroke-width="0.35" opacity="0.18"/>`;
+    g += `</g>`;
+    // área de clic sobre toda la hoja
+    g += `<rect x="${-half}" y="${apex}" width="${half * 2}" height="${-apex}" fill="#000" opacity="0"/>`;
+  }
+
+  return `<g class="obj" data-type="${o.t}" data-name="${o.name}"
+            transform="translate(${pos.x},${pos.y}) scale(${sc})"
+            style="color:${color}"
+            role="button" tabindex="0" aria-label="${o.name}">
+            ${g}
+          </g>`;
+}
+
 function renderDoorSprite(o, pos){
+  if (['p28','p_verde28','p_madera28','p_negra28'].includes(o.id))
+    return renderAntesalaDoor28(o, pos);
   if (o.id === 'p_hierro16') return renderIronDoor16(o, pos);
   if (o.id === 'puerta27') return renderBronzeDoor27(o, pos);
   if (o.id === 'p_sec27') return renderPostern27(o, pos);
   if (o.id === 'p_verde12') return renderGreenDoor12(o, pos);
   if (['p_verde13','p_azul13','p_amar13','p_hierro13','p_madera13','p_negra2',
        'p_azul4','p_verde4','p_negra3','p_azul3','p_verde6',
-       'p_madera23','p_verde23','p_azul14','p_gris15','p_amar15'].includes(o.id))
+       'p_madera23','p_verde23','p_azul14','p_gris15','p_amar15',
+       'puerta7','p_vieja7','p_roja7','p_prohib7','p_gris7'].includes(o.id))
     return renderArchedDoor(o, pos);
   // La puerta verde de los Baños usa un verde más oscuro y envejecido,
   // solo para esta habitación: la paleta global de doorColor no cambia.
